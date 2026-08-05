@@ -6,10 +6,10 @@
   <title>多多與球球行為計分板</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body id="app-body" class="bg-slate-100 text-slate-800 font-sans pb-12 transition-colors duration-300">
 
-  <!-- 頂部導覽與學生切換 -->
   <header id="app-header" class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50 transition-colors duration-300">
     <div class="max-w-4xl mx-auto flex justify-between items-center">
       <h1 class="text-xl font-bold flex items-center gap-2">
@@ -24,7 +24,16 @@
 
   <main class="max-w-4xl mx-auto p-4 space-y-6">
 
-    <!-- 週次切換控制器 -->
+    <div class="bg-indigo-900 text-white rounded-2xl p-4 shadow-sm flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center gap-2 text-sm font-bold">
+        🔑 Gemini API 金鑰設定 <span class="text-xs text-indigo-200 font-normal">(供白板拍照 OCR 自動辨識填表使用)</span>
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <input type="password" id="gemini-api-key-input" placeholder="貼上 AIzaSy... 金鑰" class="px-3 py-1.5 rounded-lg text-slate-800 text-sm w-full sm:w-64 focus:outline-none">
+        <button onclick="saveGeminiApiKey()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition">儲存</button>
+      </div>
+    </div>
+
     <div class="bg-slate-800 text-white rounded-2xl p-4 shadow-sm flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center gap-2">
         <button onclick="changeWeek(-1)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-sm font-bold transition">‹ 上一週</button>
@@ -36,17 +45,14 @@
       </div>
     </div>
 
-    <!-- 結算卡片（當週得分 vs 歷史累積總得分） -->
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6">
       
-      <!-- 當週統計 -->
       <div class="space-y-2 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6">
         <div class="text-sm text-slate-500 font-medium">當前學生：<span id="current-student-name" class="font-bold text-slate-800">多多</span></div>
         <div class="text-xl font-bold text-slate-700">當週得分：<span id="week-points" class="theme-text-primary">0</span> 點</div>
         <div class="text-sm text-slate-500">當週預計可領：<span class="font-bold text-amber-600">$ <span id="week-money">0</span></span></div>
       </div>
 
-      <!-- 累積總分與金額/扣點管理 -->
       <div class="space-y-2">
         <div class="flex items-center justify-between">
           <div class="text-sm text-slate-500 font-medium">歷史累積金額與總分</div>
@@ -55,10 +61,8 @@
         <div class="text-2xl font-black text-slate-800">累積剩餘總分：<span id="total-points" class="text-emerald-600">0</span> 點</div>
         <div class="text-2xl font-black text-amber-600">總剩餘可領金額：$ <span id="total-money">0</span></div>
 
-        <!-- 修改原始總分 & 金額/點數扣除控制面板 -->
         <div id="override-box" class="hidden mt-3 p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-4 text-xs">
           
-          <!-- 1. 修改原始總點數 -->
           <div class="p-2 bg-white rounded-lg border border-amber-200 space-y-2">
             <div class="font-bold text-amber-900">✏️ 修改原始累積點數基準：</div>
             <div class="flex items-center gap-2">
@@ -68,7 +72,6 @@
             </div>
           </div>
 
-          <!-- 2. 金額/點數扣除 -->
           <div class="p-2 bg-white rounded-lg border border-amber-200 space-y-2">
             <div class="font-bold text-amber-900">🛒 新增扣除紀錄：</div>
             <div class="flex flex-wrap items-center gap-2">
@@ -83,12 +86,10 @@
             </div>
           </div>
 
-          <!-- 3. 歷次扣除明細列表 -->
           <div>
             <div class="font-bold text-slate-700 mb-1">📜 歷次扣減明細：</div>
             <ul id="deduction-log-list" class="divide-y divide-amber-200/60 max-h-32 overflow-y-auto pr-1">
-              <!-- JS 動態渲染 -->
-            </ul>
+              </ul>
           </div>
 
         </div>
@@ -96,20 +97,17 @@
 
     </div>
 
-    <!-- 矩陣計分表格（含整張表格照片上傳與顯示） -->
     <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
-      <div class="flex justify-between items-center">
+      <div class="flex flex-wrap justify-between items-center gap-2">
         <h2 class="font-bold text-lg text-slate-700">📋 行為紀錄表</h2>
         
-        <!-- 表格共用拍照/上傳按鈕 -->
         <label id="table-photo-btn-label" class="cursor-pointer border font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1">
           📷 <span id="table-photo-btn-text">拍照 / 上傳本週表格照片</span>
           <input type="file" id="table-photo-input" accept="image/*" capture="environment" class="hidden" onchange="uploadTablePhoto(event)">
         </label>
       </div>
 
-      <!-- 照片預覽區塊 (上傳後顯示) -->
-      <div id="table-photo-container" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
+      <div id="table-photo-container" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <img id="table-photo-preview" src="" class="w-16 h-16 object-cover rounded-lg border border-slate-300 cursor-pointer shadow-sm hover:scale-105 transition" onclick="openTableImageModal()">
           <div>
@@ -117,16 +115,24 @@
             <div class="text-xs text-slate-400">點擊縮圖可放大檢視</div>
           </div>
         </div>
-        <button onclick="deleteTablePhoto()" class="text-xs text-rose-500 hover:text-rose-700 font-bold px-2 py-1 bg-rose-50 border border-rose-200 rounded-lg">刪除照片</button>
+        
+        <div class="flex items-center gap-2">
+          <button id="btn-run-ocr" onclick="runOcrRecognition()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm transition">
+            🤖 啟動 OCR 自動辨識
+          </button>
+          <button onclick="deleteTablePhoto()" class="text-xs text-rose-500 hover:text-rose-700 font-bold px-2 py-1.5 bg-rose-50 border border-rose-200 rounded-lg">刪除照片</button>
+        </div>
       </div>
 
-      <!-- 滾動容器：第一欄凍結效果 (sticky left-0) -->
+      <div id="ocr-loading" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center text-xs font-bold text-indigo-700 animate-pulse">
+        ⏳ 正在分析影像並辨識行為項目與評級中，請稍候...
+      </div>
+
       <div class="overflow-x-auto relative">
         <table class="w-full text-center border-collapse min-w-[650px]">
           <thead>
             <tr class="bg-slate-100 text-slate-600 text-sm">
               <th class="p-2 border border-slate-200 text-left w-28 sticky left-0 bg-slate-100 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">項目 / 日期</th>
-              <!-- 表頭含 [月/日] -->
               <th class="p-2 border border-slate-200 min-w-[75px]" id="th-day-0">一<br><span id="date-label-0" class="text-[11px] font-normal text-slate-500"></span><br><button onclick="toggleDayType(0)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal" id="btn-type-0">上課</button></th>
               <th class="p-2 border border-slate-200 min-w-[75px]" id="th-day-1">二<br><span id="date-label-1" class="text-[11px] font-normal text-slate-500"></span><br><button onclick="toggleDayType(1)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal" id="btn-type-1">上課</button></th>
               <th class="p-2 border border-slate-200 min-w-[75px]" id="th-day-2">三<br><span id="date-label-2" class="text-[11px] font-normal text-slate-500"></span><br><button onclick="toggleDayType(2)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal" id="btn-type-2">上課</button></th>
@@ -137,35 +143,51 @@
             </tr>
           </thead>
           <tbody id="matrix-tbody" class="text-sm">
-            <!-- JS 渲染內容 -->
-          </tbody>
+            </tbody>
         </table>
       </div>
     </div>
 
-    <!-- 額外加減分專區 -->
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
       <h2 class="font-bold text-lg text-slate-700">✨ 額外加減分登記事項</h2>
       
       <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
-        <!-- 日期選擇器 -->
         <input type="date" id="extra-date" class="sm:col-span-3 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 theme-focus-ring">
-        <!-- 事項說明 -->
         <input type="text" id="extra-note" placeholder="事項說明（如：幫忙洗碗、表現優良）" class="sm:col-span-5 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 theme-focus-ring">
-        <!-- 分數 -->
         <input type="number" id="extra-points" placeholder="分數 (+2 或 -1)" class="sm:col-span-2 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 theme-focus-ring">
-        <!-- 新增按鈕 -->
         <button id="btn-add-extra" onclick="addExtraScore()" class="sm:col-span-2 text-white font-bold px-4 py-2 rounded-lg text-sm transition">新增紀錄</button>
       </div>
 
       <ul id="extra-list" class="divide-y divide-slate-100 text-sm">
-        <!-- 額外紀錄列表 -->
-      </ul>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
+      <h2 class="font-bold text-lg text-slate-700 flex items-center gap-2">
+        📈 逐週數據統計趨勢
+      </h2>
+
+      <div class="space-y-2">
+        <h3 class="text-sm font-bold text-slate-600">🏆 每週總得分趨勢圖</h3>
+        <div class="relative h-64 w-full">
+          <canvas id="chart-total-score"></canvas>
+        </div>
+      </div>
+
+      <div class="space-y-3 pt-4 border-t border-slate-100">
+        <div class="flex flex-wrap justify-between items-center gap-2">
+          <h3 class="text-sm font-bold text-slate-600">🎯 行為分項每週得分趨勢圖</h3>
+          <select id="item-chart-selector" onchange="renderItemTrendChart()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs font-bold text-slate-700 focus:outline-none">
+            </select>
+        </div>
+        <div class="relative h-64 w-full">
+          <canvas id="chart-item-score"></canvas>
+        </div>
+      </div>
     </div>
 
   </main>
 
-  <!-- 照片放大預覽 Modal -->
   <div id="image-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onclick="closeImageModal()">
     <img id="modal-img" src="" class="max-w-full max-h-[90vh] rounded-lg shadow-xl object-contain">
   </div>
@@ -181,6 +203,7 @@
     const ITEMS_COMMON = ['起床', '中晝頓', '歇晝', '收𨑨迌物仔', '暗頓', '洗身軀', '歇睏'];
     const ITEMS_WEEKDAY = ['學校表現', '宿題', '收冊包'];
     const ITEMS_WEEKEND = ['算術', '語言', '行為'];
+    const ALL_ITEMS = [...ITEMS_COMMON, ...ITEMS_WEEKDAY, ...ITEMS_WEEKEND];
 
     let currentStudentId = 1;
     let studentNames = { 1: '多多', 2: '球球' };
@@ -188,23 +211,36 @@
     let dayTypes = [false, false, false, false, false, true, true];
     let currentWeekOffset = 0;
     let weekDates = [];
-    let allTimeScores = []; 
+    let allTimeScores = [];
 
     let manualBasePoints = null;
     let deductionLogs = [];
     let currentTablePhotoUrl = null;
 
+    let chartTotalInstance = null;
+    let chartItemInstance = null;
+
+    // 預設載入 Gemini API Key
+    const savedApiKey = localStorage.getItem('GEMINI_API_KEY') || '';
+    if (savedApiKey) {
+      document.getElementById('gemini-api-key-input').value = savedApiKey;
+    }
+
     // 預設將額外項目的日期設為今天 (YYYY-MM-DD)
     document.getElementById('extra-date').value = new Date().toISOString().split('T')[0];
+
+    function saveGeminiApiKey() {
+      const key = document.getElementById('gemini-api-key-input').value.trim();
+      localStorage.setItem('GEMINI_API_KEY', key);
+      alert('✅ Gemini API Key 已成功儲存！');
+    }
 
     function getWeekDates(offsetInWeeks = 0) {
       const now = new Date();
       now.setDate(now.getDate() + (offsetInWeeks * 7));
-      
       const day = now.getDay() === 0 ? 7 : now.getDay();
       const monday = new Date(now);
       monday.setDate(now.getDate() - day + 1);
-
       const dates = [];
       for (let i = 0; i < 7; i++) {
         const d = new Date(monday);
@@ -217,7 +253,7 @@
     function updateWeekDisplay() {
       weekDates = getWeekDates(currentWeekOffset);
       document.getElementById('week-range-text').innerText = `${weekDates[0]} ~ ${weekDates[6]}`;
-
+      
       // 更新表頭月/日標籤 (例如: [08/03])
       weekDates.forEach((dStr, idx) => {
         const parts = dStr.split('-');
@@ -241,15 +277,11 @@
     function switchStudent(id) {
       currentStudentId = id;
       document.getElementById('current-student-name').innerText = studentNames[id];
-      
-      // 更新主題顏色系 (多多: 藍色 / 球球: 紅色)
       applyTheme(id);
-
       document.getElementById('override-box').classList.add('hidden');
       loadData();
     }
 
-    // 應用專屬主題顏色
     function applyTheme(studentId) {
       const body = document.getElementById('app-body');
       const header = document.getElementById('app-header');
@@ -263,445 +295,653 @@
       const btnAddExtra = document.getElementById('btn-add-extra');
 
       if (studentId === 1) {
-        // 多多：藍色系 (Deep Sky / Indigo)
         body.className = "bg-sky-50/50 text-slate-800 font-sans pb-12 transition-colors duration-300";
         header.className = "bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50 transition-colors duration-300";
-        
         btnStudent1.className = 'px-4 py-1.5 rounded-full font-bold transition bg-sky-500 text-white shadow-sm ring-2 ring-sky-300';
         btnStudent2.className = 'px-4 py-1.5 rounded-full font-bold transition bg-slate-800 text-slate-300 hover:text-white';
-
         weekPoints.className = "text-sky-600 font-bold";
         weekRangeText.className = "text-sky-300 font-bold";
         btnCurrentWeek.className = "bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition";
         btnSaveBase.className = "bg-sky-600 hover:bg-sky-700 text-white font-bold px-2 py-1 rounded";
-        
-        tablePhotoBtnLabel.className = "cursor-pointer bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-300 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1";
+        tablePhotoBtnLabel.className = "cursor-pointer bg-sky-50 border-sky-300 text-sky-700 hover:bg-sky-100 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1";
         btnAddExtra.className = "sm:col-span-2 bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition";
       } else {
-        // 球球：紅色系 (Vibrant Crimson / Rose)
         body.className = "bg-rose-50/50 text-slate-800 font-sans pb-12 transition-colors duration-300";
         header.className = "bg-rose-950 text-white p-4 shadow-md sticky top-0 z-50 transition-colors duration-300";
-        
-        btnStudent1.className = 'px-4 py-1.5 rounded-full font-bold transition bg-rose-900 text-slate-300 hover:text-white';
+        btnStudent1.className = 'px-4 py-1.5 rounded-full font-bold transition bg-rose-900 text-rose-300 hover:text-white';
         btnStudent2.className = 'px-4 py-1.5 rounded-full font-bold transition bg-rose-600 text-white shadow-sm ring-2 ring-rose-300';
-
         weekPoints.className = "text-rose-600 font-bold";
         weekRangeText.className = "text-rose-300 font-bold";
         btnCurrentWeek.className = "bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition";
         btnSaveBase.className = "bg-rose-600 hover:bg-rose-700 text-white font-bold px-2 py-1 rounded";
-
-        tablePhotoBtnLabel.className = "cursor-pointer bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1";
+        tablePhotoBtnLabel.className = "cursor-pointer bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1";
         btnAddExtra.className = "sm:col-span-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition";
-      }
-
-      // 重新渲染表格以更新按鈕的主題色
-      updateDayTypeButtonsUI();
-    }
-
-    async function toggleDayType(dayIndex) {
-      dayTypes[dayIndex] = !dayTypes[dayIndex];
-      updateDayTypeButtonsUI();
-
-      const mondayDate = weekDates[0];
-      await _supabase.from('week_day_types').upsert({
-        student_id: currentStudentId,
-        week_start_date: mondayDate,
-        day_types: dayTypes
-      }, { onConflict: 'student_id,week_start_date' });
-
-      renderTable();
-    }
-
-    function updateDayTypeButtonsUI() {
-      const isDuo = currentStudentId === 1;
-      for (let i = 0; i < 7; i++) {
-        const btn = document.getElementById(`btn-type-${i}`);
-        if (dayTypes[i]) {
-          btn.innerText = '假日';
-          btn.className = 'text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-amber-200 text-amber-900';
-        } else {
-          btn.innerText = '上課';
-          btn.className = isDuo 
-            ? 'text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-sky-100 text-sky-800'
-            : 'text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-rose-100 text-rose-800';
-        }
       }
     }
 
     async function loadData() {
-      // 1. 載入當週專屬平假日設定
-      const mondayDate = weekDates[0];
-      const { data: weekTypeData } = await _supabase
-        .from('week_day_types')
-        .select('day_types')
-        .eq('student_id', currentStudentId)
-        .eq('week_start_date', mondayDate)
-        .maybeSingle();
+      await loadDayTypes();
+      await loadCurrentWeekScores();
+      await loadAllTimeScores();
+      await loadManualBasePoints();
+      await loadDeductionLogs();
+      await loadExtraScores();
+      await loadTablePhoto();
 
-      if (weekTypeData && weekTypeData.day_types) {
-        dayTypes = weekTypeData.day_types;
-      } else {
-        dayTypes = [false, false, false, false, false, true, true];
-      }
-      updateDayTypeButtonsUI();
-
-      // 2. 載入每日評分
-      const { data: allData } = await _supabase
-        .from('daily_scores')
-        .select('*')
-        .eq('student_id', currentStudentId);
-
-      allTimeScores = allData || [];
-
-      currentWeekScores = {};
-      allTimeScores.forEach(s => {
-        if (s.date >= weekDates[0] && s.date <= weekDates[6]) {
-          currentWeekScores[`${s.date}_${s.item_name}`] = s.grade;
-        }
-      });
-
-      // 3. 載入手動原始總點數設定
-      const { data: overrideData } = await _supabase
-        .from('student_overrides')
-        .select('manual_base_points')
-        .eq('student_id', currentStudentId)
-        .maybeSingle();
-
-      manualBasePoints = overrideData ? overrideData.manual_base_points : null;
-      document.getElementById('manual-base-input').placeholder = manualBasePoints !== null ? `目前設定: ${manualBasePoints}` : '輸入新原始總點數';
-
-      // 4. 載入扣減紀錄列表
-      const { data: logsData } = await _supabase
-        .from('deduction_logs')
-        .select('*')
-        .eq('student_id', currentStudentId)
-        .order('created_at', { ascending: false });
-
-      deductionLogs = logsData || [];
-      renderDeductionLogs();
-
-      // 5. 載入當週表格照片
-      const { data: tablePhotoData } = await _supabase
-        .from('daily_scores')
-        .select('image_url')
-        .eq('student_id', currentStudentId)
-        .eq('date', mondayDate)
-        .eq('item_name', 'TABLE_PHOTO')
-        .maybeSingle();
-
-      if (tablePhotoData && tablePhotoData.image_url) {
-        currentTablePhotoUrl = tablePhotoData.image_url;
-        document.getElementById('table-photo-preview').src = currentTablePhotoUrl;
-        document.getElementById('table-photo-container').classList.remove('hidden');
-      } else {
-        currentTablePhotoUrl = null;
-        document.getElementById('table-photo-container').classList.add('hidden');
-      }
-
-      renderTable();
-      loadExtraScores();
-    }
-
-    function renderTable() {
-      const tbody = document.getElementById('matrix-tbody');
-      tbody.innerHTML = '';
-
-      const allItems = [...ITEMS_COMMON, ...ITEMS_WEEKDAY, ...ITEMS_WEEKEND];
-
-      allItems.forEach(item => {
-        const tr = document.createElement('tr');
-        let rowHtml = `<td class="p-2 border border-slate-200 font-bold text-left bg-slate-50 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">${item}</td>`;
-
-        weekDates.forEach((date, index) => {
-          const isWeekendType = dayTypes[index];
-          const isWeekdayItem = ITEMS_WEEKDAY.includes(item);
-          const isWeekendItem = ITEMS_WEEKEND.includes(item);
-
-          if ((isWeekendType && isWeekdayItem) || (!isWeekendType && isWeekendItem)) {
-            rowHtml += `<td class="p-2 border border-slate-200 bg-slate-100/50 text-slate-300">-</td>`;
-          } else {
-            const key = `${date}_${item}`;
-            const grade = currentWeekScores[key] || '-';
-            const badgeClass = getBadgeClass(grade);
-
-            const hoverBg = currentStudentId === 1 ? 'hover:bg-sky-50' : 'hover:bg-rose-50';
-
-            rowHtml += `
-              <td class="p-2 border border-slate-200 ${hoverBg} cursor-pointer transition select-none" onclick="toggleGrade('${date}', '${item}', '${grade}')">
-                <span class="inline-block w-7 h-7 leading-7 rounded-full font-bold text-xs ${badgeClass}">${grade}</span>
-              </td>
-            `;
-          }
-        });
-
-        tr.innerHTML = rowHtml;
-        tbody.appendChild(tr);
-      });
-
+      renderMatrixTable();
       calculateTotal();
+      renderItemSelectorOptions();
+      renderTrendCharts();
     }
 
-    function getBadgeClass(grade) {
-      const isDuo = currentStudentId === 1;
-      switch(grade) {
-        case 'A': return 'bg-emerald-100 text-emerald-700 border border-emerald-300';
-        case 'B': return isDuo ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-rose-100 text-rose-700 border border-rose-300';
-        case 'C': return 'bg-slate-100 text-slate-600';
-        case 'D': return 'bg-amber-100 text-amber-700 border border-amber-300';
-        case 'E': return 'bg-purple-100 text-purple-700 border border-purple-300';
-        default: return 'text-slate-300';
+    async function loadDayTypes() {
+      try {
+        const { data, error } = await _supabase
+          .from('weekly_day_types')
+          .select('day_types')
+          .eq('student_id', currentStudentId)
+          .eq('start_date', weekDates[0])
+          .maybeSingle();
+
+        if (data && data.day_types) {
+          dayTypes = data.day_types;
+        } else {
+          dayTypes = [false, false, false, false, false, true, true];
+        }
+        updateDayTypeHeadersUI();
+      } catch (err) {
+        console.error('載入平假日設定失敗:', err);
       }
     }
 
-    async function toggleGrade(date, item, currentGrade) {
-      const nextIdx = (GRADE_SEQUENCE.indexOf(currentGrade) + 1) % GRADE_SEQUENCE.length;
-      const nextGrade = GRADE_SEQUENCE[nextIdx];
-
-      currentWeekScores[`${date}_${item}`] = nextGrade;
-
-      const scoreObj = GRADE_MAP[nextGrade];
-      const dayOfWeek = new Date(date).getDay() || 7;
-
-      await _supabase.from('daily_scores').upsert({
-        student_id: currentStudentId,
-        date: date,
-        day_of_week: dayOfWeek,
-        item_name: item,
-        grade: nextGrade,
-        score: scoreObj,
-        is_edited: true
-      }, { onConflict: 'student_id,date,item_name' });
-
-      loadData();
-    }
-
-    async function uploadTablePhoto(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      document.getElementById('table-photo-btn-text').innerText = '上傳中...';
-      const mondayDate = weekDates[0];
-      const fileName = `table_${currentStudentId}_${mondayDate}_${Date.now()}_${file.name}`;
-
-      const { data: uploadData, error: uploadError } = await _supabase.storage
-        .from('receipts')
-        .upload(fileName, file);
-
-      if (uploadError) {
-        alert('照片上傳失敗：' + uploadError.message);
-        document.getElementById('table-photo-btn-text').innerText = '拍照 / 上傳本週表格照片';
-        event.target.value = '';
-        return;
-      }
-
-      const { data: urlData } = _supabase.storage
-        .from('receipts')
-        .getPublicUrl(fileName);
-      
-      const imageUrl = urlData.publicUrl;
-
-      const { error: dbError } = await _supabase.from('daily_scores').upsert({
-        student_id: currentStudentId,
-        date: mondayDate,
-        day_of_week: 1,
-        item_name: 'TABLE_PHOTO',
-        grade: '-',
-        score: 0,
-        image_url: imageUrl,
-        is_edited: false
-      }, { onConflict: 'student_id,date,item_name' });
-
-      if (dbError) {
-        alert('照片儲存至資料庫失敗：' + dbError.message);
-      } else {
-        alert('表格照片上傳成功！');
-        await loadData();
-      }
-
-      document.getElementById('table-photo-btn-text').innerText = '拍照 / 上傳本週表格照片';
-      event.target.value = '';
-    }
-
-    async function deleteTablePhoto() {
-      if (!confirm('確定要刪除本週的表格照片嗎？')) return;
-
-      const mondayDate = weekDates[0];
-      await _supabase.from('daily_scores')
-        .delete()
-        .eq('student_id', currentStudentId)
-        .eq('date', mondayDate)
-        .eq('item_name', 'TABLE_PHOTO');
-
-      loadData();
-    }
-
-    function openTableImageModal() {
-      if (currentTablePhotoUrl) {
-        openImageModal(currentTablePhotoUrl);
+    function updateDayTypeHeadersUI() {
+      for (let i = 0; i < 7; i++) {
+        const btn = document.getElementById(`btn-type-${i}`);
+        const th = document.getElementById(`th-day-${i}`);
+        const isWeekend = dayTypes[i];
+        if (isWeekend) {
+          btn.innerText = '假日';
+          btn.className = 'text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-amber-200 text-amber-900';
+          th.className = 'p-2 border border-slate-200 min-w-[75px] bg-amber-50';
+        } else {
+          btn.innerText = '上課';
+          btn.className = 'text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-slate-200 text-slate-700';
+          th.className = 'p-2 border border-slate-200 min-w-[75px]';
+        }
       }
     }
 
-    function toggleOverrideInput() {
-      const box = document.getElementById('override-box');
-      box.classList.toggle('hidden');
+    async function toggleDayType(dayIndex) {
+      dayTypes[dayIndex] = !dayTypes[dayIndex];
+      updateDayTypeHeadersUI();
+      renderMatrixTable();
+      calculateTotal();
+
+      try {
+        await _supabase
+          .from('weekly_day_types')
+          .upsert({
+            student_id: currentStudentId,
+            start_date: weekDates[0],
+            day_types: dayTypes
+          });
+      } catch (err) {
+        console.error('儲存平假日設定失敗:', err);
+      }
+    }
+
+    async function loadCurrentWeekScores() {
+      currentWeekScores = {};
+      try {
+        const { data, error } = await _supabase
+          .from('behavior_scores')
+          .select('*')
+          .eq('student_id', currentStudentId)
+          .in('date', weekDates);
+
+        if (data) {
+          data.forEach(item => {
+            const dayIdx = weekDates.indexOf(item.date);
+            if (dayIdx !== -1) {
+              const key = `${item.item_name}_${dayIdx}`;
+              currentWeekScores[key] = item.grade || '-';
+            }
+          });
+        }
+      } catch (err) {
+        console.error('載入當週分數失敗:', err);
+      }
+    }
+
+    async function loadAllTimeScores() {
+      try {
+        const { data, error } = await _supabase
+          .from('behavior_scores')
+          .select('*')
+          .eq('student_id', currentStudentId);
+
+        allTimeScores = data || [];
+      } catch (err) {
+        console.error('載入所有分數失敗:', err);
+        allTimeScores = [];
+      }
+    }
+
+    async function loadManualBasePoints() {
+      try {
+        const { data, error } = await _supabase
+          .from('student_base_points')
+          .select('base_points')
+          .eq('student_id', currentStudentId)
+          .maybeSingle();
+
+        if (data && data.base_points !== null) {
+          manualBasePoints = data.base_points;
+          document.getElementById('manual-base-input').value = manualBasePoints;
+        } else {
+          manualBasePoints = null;
+          document.getElementById('manual-base-input').value = '';
+        }
+      } catch (err) {
+        console.error('載入原始累積點數失敗:', err);
+      }
     }
 
     async function saveManualBasePoints() {
-      const val = parseInt(document.getElementById('manual-base-input').value);
-      if (isNaN(val)) return alert('請輸入有效的數字分數！');
+      const val = document.getElementById('manual-base-input').value;
+      if (val === '') return;
+      const newBase = parseInt(val, 10);
 
-      await _supabase.from('student_overrides').upsert({
-        student_id: currentStudentId,
-        manual_base_points: val
-      });
+      try {
+        await _supabase
+          .from('student_base_points')
+          .upsert({ student_id: currentStudentId, base_points: newBase });
 
-      alert(`已成功將 ${studentNames[currentStudentId]} 的原始總點數修改為：${val} 點`);
-      document.getElementById('manual-base-input').value = '';
-      loadData();
+        manualBasePoints = newBase;
+        calculateTotal();
+        alert('✅ 原始點數已成功儲存！');
+      } catch (err) {
+        alert('❌ 儲存失敗：' + err.message);
+      }
     }
 
     async function resetManualBasePoints() {
-      await _supabase.from('student_overrides').delete().eq('student_id', currentStudentId);
-      alert('已恢復為系統自動計算原始總分！');
-      loadData();
-    }
+      try {
+        await _supabase
+          .from('student_base_points')
+          .delete()
+          .eq('student_id', currentStudentId);
 
-    async function addDeduction() {
-      const note = document.getElementById('deduct-note-input').value.trim() || '扣除項';
-      const money = parseFloat(document.getElementById('deduct-money-input').value);
-      const points = parseInt(document.getElementById('deduct-points-input').value);
-
-      let ptsToDeduct = 0;
-      let amountMoney = 0;
-
-      if (!isNaN(money) && money > 0) {
-        amountMoney = money;
-        ptsToDeduct = Math.ceil(money / 5);
-      } else if (!isNaN(points) && points > 0) {
-        ptsToDeduct = points;
-      } else {
-        return alert('請填寫欲扣除的金額或點數！');
+        manualBasePoints = null;
+        document.getElementById('manual-base-input').value = '';
+        calculateTotal();
+        alert('✅ 已恢復為自動計算！');
+      } catch (err) {
+        alert('❌ 重置失敗：' + err.message);
       }
-
-      await _supabase.from('deduction_logs').insert({
-        student_id: currentStudentId,
-        amount_money: amountMoney,
-        deducted_points: ptsToDeduct,
-        note: note
-      });
-
-      document.getElementById('deduct-note-input').value = '';
-      document.getElementById('deduct-money-input').value = '';
-      document.getElementById('deduct-points-input').value = '';
-
-      loadData();
     }
 
-    async function deleteDeductionLog(id) {
-      await _supabase.from('deduction_logs').delete().eq('id', id);
-      loadData();
+    async function loadDeductionLogs() {
+      try {
+        const { data, error } = await _supabase
+          .from('deduction_logs')
+          .select('*')
+          .eq('student_id', currentStudentId)
+          .order('created_at', { ascending: false });
+
+        deductionLogs = data || [];
+        renderDeductionLogs();
+      } catch (err) {
+        console.error('載入扣除紀錄失敗:', err);
+      }
     }
 
     function renderDeductionLogs() {
-      const list = document.getElementById('deduction-log-list');
-      list.innerHTML = '';
-
+      const ul = document.getElementById('deduction-log-list');
+      ul.innerHTML = '';
       if (deductionLogs.length === 0) {
-        list.innerHTML = '<li class="text-slate-400 py-1 text-[11px]">尚無扣除紀錄</li>';
+        ul.innerHTML = '<li class="py-1 text-slate-400 font-normal">尚無扣除紀錄</li>';
+        return;
+      }
+      deductionLogs.forEach(log => {
+        const li = document.createElement('li');
+        li.className = 'py-1 flex justify-between items-center';
+        li.innerHTML = `
+          <div>
+            <span class="font-bold text-slate-700">${log.note || '未命名'}</span>
+            <span class="text-[10px] text-slate-400 ml-1">(${log.created_at.split('T')[0]})</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-rose-600">-${log.deducted_points} 點 ($${log.deducted_money || log.deducted_points * 5})</span>
+            <button onclick="deleteDeduction(${log.id})" class="text-slate-400 hover:text-rose-500 text-xs">✕</button>
+          </div>
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    async function addDeduction() {
+      const note = document.getElementById('deduct-note-input').value.trim();
+      const moneyVal = document.getElementById('deduct-money-input').value;
+      const pointsVal = document.getElementById('deduct-points-input').value;
+
+      let deductedPoints = 0;
+      let deductedMoney = 0;
+
+      if (moneyVal) {
+        deductedMoney = parseFloat(moneyVal);
+        deductedPoints = Math.ceil(deductedMoney / 5);
+      } else if (pointsVal) {
+        deductedPoints = parseInt(pointsVal, 10);
+        deductedMoney = deductedPoints * 5;
+      } else {
+        alert('請輸入金額或點數！');
         return;
       }
 
-      deductionLogs.forEach(log => {
-        const li = document.createElement('li');
-        li.className = 'py-1 flex justify-between items-center text-[11px]';
-        const moneyDesc = log.amount_money > 0 ? `($${log.amount_money}元)` : '';
+      try {
+        await _supabase
+          .from('deduction_logs')
+          .insert({
+            student_id: currentStudentId,
+            note: note || '扣除項',
+            deducted_points: deductedPoints,
+            deducted_money: deductedMoney
+          });
 
-        li.innerHTML = `
-          <div>
-            <span class="font-bold text-rose-600">-${log.deducted_points} 點</span>
-            <span class="text-slate-700 font-medium ml-1">${log.note} ${moneyDesc}</span>
-          </div>
-          <button onclick="deleteDeductionLog(${log.id})" class="text-slate-400 hover:text-rose-600 font-bold">刪除</button>
+        document.getElementById('deduct-note-input').value = '';
+        document.getElementById('deduct-money-input').value = '';
+        document.getElementById('deduct-points-input').value = '';
+
+        await loadDeductionLogs();
+        calculateTotal();
+      } catch (err) {
+        alert('❌ 新增扣除紀錄失敗：' + err.message);
+      }
+    }
+
+    async function deleteDeduction(id) {
+      if (!confirm('確定刪除此筆扣除紀錄？')) return;
+      try {
+        await _supabase
+          .from('deduction_logs')
+          .delete()
+          .eq('id', id);
+
+        await loadDeductionLogs();
+        calculateTotal();
+      } catch (err) {
+        alert('❌ 刪除失敗：' + err.message);
+      }
+    }
+
+    async function loadTablePhoto() {
+      currentTablePhotoUrl = null;
+      document.getElementById('table-photo-container').classList.add('hidden');
+
+      try {
+        const { data, error } = await _supabase
+          .from('behavior_scores')
+          .select('grade')
+          .eq('student_id', currentStudentId)
+          .eq('date', weekDates[0])
+          .eq('item_name', 'TABLE_PHOTO')
+          .maybeSingle();
+
+        if (data && data.grade) {
+          currentTablePhotoUrl = data.grade;
+          document.getElementById('table-photo-preview').src = currentTablePhotoUrl;
+          document.getElementById('table-photo-container').classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error('載入白板照片失敗:', err);
+      }
+    }
+
+    async function uploadTablePhoto(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const btnText = document.getElementById('table-photo-btn-text');
+      btnText.innerText = '上傳中...';
+
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `table_${currentStudentId}_${weekDates[0]}_${Date.now()}.${fileExt}`;
+        const filePath = `tables/${fileName}`;
+
+        const { error: uploadErr } = await _supabase.storage
+          .from('photos')
+          .upload(filePath, file);
+
+        if (uploadErr) throw uploadErr;
+
+        const { data: publicUrlData } = _supabase.storage
+          .from('photos')
+          .getPublicUrl(filePath);
+
+        const publicUrl = publicUrlData.publicUrl;
+
+        await _supabase
+          .from('behavior_scores')
+          .upsert({
+            student_id: currentStudentId,
+            date: weekDates[0],
+            item_name: 'TABLE_PHOTO',
+            grade: publicUrl,
+            score: 0
+          }, { onConflict: 'student_id,date,item_name' });
+
+        currentTablePhotoUrl = publicUrl;
+        document.getElementById('table-photo-preview').src = publicUrl;
+        document.getElementById('table-photo-container').classList.remove('hidden');
+        btnText.innerText = '拍照 / 上傳本週表格照片';
+        e.target.value = '';
+      } catch (err) {
+        alert('❌ 照片上傳失敗：' + err.message);
+        btnText.innerText = '拍照 / 上傳本週表格照片';
+      }
+    }
+
+    async function deleteTablePhoto() {
+      if (!confirm('確定要刪除本週白板照片嗎？')) return;
+
+      try {
+        await _supabase
+          .from('behavior_scores')
+          .delete()
+          .eq('student_id', currentStudentId)
+          .eq('date', weekDates[0])
+          .eq('item_name', 'TABLE_PHOTO');
+
+        currentTablePhotoUrl = null;
+        document.getElementById('table-photo-container').classList.add('hidden');
+      } catch (err) {
+        alert('❌ 刪除照片失敗：' + err.message);
+      }
+    }
+
+    // 🤖 Gemini Vision OCR 自動辨識填表功能
+    async function runOcrRecognition() {
+      const apiKey = localStorage.getItem('GEMINI_API_KEY');
+      if (!apiKey) {
+        alert('⚠️ 請先在頁面上方輸入並儲存您的 Gemini API Key！');
+        return;
+      }
+      if (!currentTablePhotoUrl) {
+        alert('⚠️ 找不到照片網址！');
+        return;
+      }
+
+      const ocrLoading = document.getElementById('ocr-loading');
+      const btnOcr = document.getElementById('btn-run-ocr');
+      ocrLoading.classList.remove('hidden');
+      btnOcr.disabled = true;
+
+      try {
+        // 將圖片轉成 Base64
+        const response = await fetch(currentTablePhotoUrl);
+        const blob = await response.blob();
+        const base64Data = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result.split(',')[1]);
+          reader.readAsDataURL(blob);
+        });
+
+        // 呼叫 Gemini Vision API (Gemini 1.5 Flash)
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        
+        const promptText = `
+你是一個專業的表格文字辨識助手。請分析這張白板行為紀錄照片。
+我們有以下幾項行為項目：
+${ALL_ITEMS.join(', ')}
+
+評估等級只有五種：A, B, C, D, E。
+請將辨識到的結果以 STRICT JSON 格式傳回，陣列中的每個物件格式為：
+{
+  "item": "項目名稱(必須完全符合上面提供的項目列表)",
+  "dayIndex": 0到6的整數 (0代表週一，1代表週二... 6代表週日),
+  "grade": "A" 或 "B" 或 "C" 或 "D" 或 "E"
+}
+只輸出 JSON，不要加入 Markdown 標籤，也不要輸出任何額外文字。
         `;
-        list.appendChild(li);
-      });
+
+        const requestBody = {
+          contents: [{
+            parts: [
+              { text: promptText },
+              { inline_data: { mime_type: "image/jpeg", data: base64Data } }
+            ]
+          }]
+        };
+
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        });
+
+        const resData = await res.json();
+        const rawText = resData.candidates[0].content.parts[0].text.trim();
+        const cleanJsonText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const recognizedResults = JSON.parse(cleanJsonText);
+
+        let updateCount = 0;
+        for (const item of recognizedResults) {
+          if (ALL_ITEMS.includes(item.item) && item.dayIndex >= 0 && item.dayIndex <= 6 && ['A','B','C','D','E'].includes(item.grade)) {
+            const key = `${item.item}_${item.dayIndex}`;
+            currentWeekScores[key] = item.grade;
+            
+            // 自動儲存至資料庫
+            const dateStr = weekDates[item.dayIndex];
+            const scoreVal = GRADE_MAP[item.grade];
+            await _supabase
+              .from('behavior_scores')
+              .upsert({
+                student_id: currentStudentId,
+                date: dateStr,
+                item_name: item.item,
+                grade: item.grade,
+                score: scoreVal
+              }, { onConflict: 'student_id,date,item_name' });
+
+            updateCount++;
+          }
+        }
+
+        renderMatrixTable();
+        calculateTotal();
+        await loadAllTimeScores();
+        renderTrendCharts();
+
+        alert(`🎉 OCR 辨識完成！共成功填入 ${updateCount} 筆行為評級，請人工檢查確認是否正確！`);
+
+      } catch (err) {
+        console.error('OCR 辨識錯誤:', err);
+        alert('❌ OCR 辨識失敗，請確認 API Key 是否正確或照片是否清晰！');
+      } finally {
+        ocrLoading.classList.add('hidden');
+        btnOcr.disabled = false;
+      }
     }
 
     async function loadExtraScores() {
-      const { data: allExtra } = await _supabase
-        .from('extra_scores')
-        .select('*')
-        .eq('student_id', currentStudentId)
-        .order('date', { ascending: false });
+      try {
+        const { data, error } = await _supabase
+          .from('extra_scores')
+          .select('*')
+          .eq('student_id', currentStudentId)
+          .in('date', weekDates)
+          .order('id', { ascending: true });
 
-      const list = document.getElementById('extra-list');
-      list.innerHTML = '';
+        renderExtraScores(data || []);
+      } catch (err) {
+        console.error('載入額外加減分失敗:', err);
+      }
+    }
 
-      let weekExtraTotal = 0;
-      let allExtraTotal = 0;
+    function renderExtraScores(list) {
+      const ul = document.getElementById('extra-list');
+      ul.innerHTML = '';
+      window.weekExtraTotal = 0;
 
-      if (allExtra) {
-        allExtra.forEach(item => {
-          allExtraTotal += item.points;
-
-          if (item.date >= weekDates[0] && item.date <= weekDates[6]) {
-            weekExtraTotal += item.points;
-
-            const li = document.createElement('li');
-            li.className = 'py-2 flex justify-between items-center';
-
-            li.innerHTML = `
-              <div class="flex items-center gap-3">
-                <div>
-                  <span class="font-bold ${item.points >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${item.points >= 0 ? '+' : ''}${item.points} 點</span>
-                  <span class="ml-2 text-slate-700 font-medium">${item.note}</span>
-                  <span class="ml-2 text-xs text-slate-400 font-mono">(${item.date})</span>
-                </div>
-              </div>
-              <button onclick="deleteExtraScore(${item.id})" class="text-xs text-slate-400 hover:text-rose-500">刪除</button>
-            `;
-            list.appendChild(li);
-          }
-        });
+      if (list.length === 0) {
+        ul.innerHTML = '<li class="py-2 text-slate-400 text-center font-normal">本週尚無額外加減分紀錄</li>';
+        return;
       }
 
-      window.weekExtraTotal = weekExtraTotal;
-      window.allExtraTotal = allExtraTotal;
-      calculateTotal();
+      list.forEach(item => {
+        window.weekExtraTotal += (item.points || 0);
+        const li = document.createElement('li');
+        li.className = 'py-2.5 flex justify-between items-center';
+        const isPositive = item.points >= 0;
+        li.innerHTML = `
+          <div>
+            <span class="font-bold text-slate-700">${item.note}</span>
+            <span class="text-xs text-slate-400 ml-2">(${item.date})</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="font-bold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}">
+              ${isPositive ? '+' : ''}${item.points} 點
+            </span>
+            <button onclick="deleteExtraScore(${item.id})" class="text-slate-400 hover:text-rose-500 font-bold text-xs">✕</button>
+          </div>
+        `;
+        ul.appendChild(li);
+      });
     }
 
     async function addExtraScore() {
-      const selectedDate = document.getElementById('extra-date').value;
+      const date = document.getElementById('extra-date').value;
       const note = document.getElementById('extra-note').value.trim();
-      const points = parseInt(document.getElementById('extra-points').value);
+      const pointsVal = document.getElementById('extra-points').value;
 
-      if (!selectedDate || !note || isNaN(points)) return alert('請填寫完整的發生日期、事項說明與加減分數！');
+      if (!date || !note || !pointsVal) {
+        alert('請完整填寫日期、事項說明與分數！');
+        return;
+      }
 
-      await _supabase.from('extra_scores').insert({
-        student_id: currentStudentId,
-        date: selectedDate,
-        points: points,
-        note: note
-      });
+      const points = parseInt(pointsVal, 10);
 
-      document.getElementById('extra-note').value = '';
-      document.getElementById('extra-points').value = '';
+      try {
+        await _supabase
+          .from('extra_scores')
+          .insert({
+            student_id: currentStudentId,
+            date: date,
+            note: note,
+            points: points
+          });
 
-      loadData();
+        document.getElementById('extra-note').value = '';
+        document.getElementById('extra-points').value = '';
+
+        await loadExtraScores();
+        calculateTotal();
+      } catch (err) {
+        alert('❌ 新增失敗：' + err.message);
+      }
     }
 
     async function deleteExtraScore(id) {
-      await _supabase.from('extra_scores').delete().eq('id', id);
-      loadData();
+      if (!confirm('確定刪除此筆額外紀錄？')) return;
+      try {
+        await _supabase
+          .from('extra_scores')
+          .delete()
+          .eq('id', id);
+
+        await loadExtraScores();
+        calculateTotal();
+      } catch (err) {
+        alert('❌ 刪除失敗：' + err.message);
+      }
     }
 
-    function openImageModal(url) {
-      document.getElementById('modal-img').src = url;
-      document.getElementById('image-modal').classList.remove('hidden');
+    function renderMatrixTable() {
+      const tbody = document.getElementById('matrix-tbody');
+      tbody.innerHTML = '';
+
+      const renderSection = (title, items) => {
+        const headerTr = document.createElement('tr');
+        headerTr.className = 'bg-slate-50 font-bold text-slate-500 text-xs';
+        headerTr.innerHTML = `<td colspan="8" class="p-1.5 text-left pl-3 bg-slate-100 border border-slate-200">${title}</td>`;
+        tbody.appendChild(headerTr);
+
+        items.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50/80 transition';
+
+          let tds = `<td class="p-2 border border-slate-200 text-left font-semibold text-slate-700 sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">${item}</td>`;
+
+          for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+            const isWeekend = dayTypes[dayIdx];
+            const isAppliable = 
+              ITEMS_COMMON.includes(item) ||
+              (!isWeekend && ITEMS_WEEKDAY.includes(item)) ||
+              (isWeekend && ITEMS_WEEKEND.includes(item));
+
+            if (!isAppliable) {
+              tds += `<td class="p-2 border border-slate-200 bg-slate-100 text-slate-300 font-bold">-</td>`;
+            } else {
+              const key = `${item}_${dayIdx}`;
+              const currentGrade = currentWeekScores[key] || '-';
+              
+              let gradeBg = 'bg-white text-slate-600 border-slate-200';
+              if (currentGrade === 'A') gradeBg = 'bg-emerald-500 text-white font-bold border-emerald-600';
+              if (currentGrade === 'B') gradeBg = 'bg-sky-500 text-white font-bold border-sky-600';
+              if (currentGrade === 'C') gradeBg = 'bg-slate-200 text-slate-700 font-bold border-slate-300';
+              if (currentGrade === 'D') gradeBg = 'bg-amber-500 text-white font-bold border-amber-600';
+              if (currentGrade === 'E') gradeBg = 'bg-rose-500 text-white font-bold border-rose-600';
+
+              tds += `
+                <td class="p-1.5 border border-slate-200 ${isWeekend ? 'bg-amber-50/30' : ''}">
+                  <button onclick="cycleGrade('${item}', ${dayIdx})" class="w-10 h-8 rounded-lg border text-sm transition transform active:scale-95 ${gradeBg}">
+                    ${currentGrade}
+                  </button>
+                </td>
+              `;
+            }
+          }
+          tr.innerHTML = tds;
+          tbody.appendChild(tr);
+        });
+      };
+
+      renderSection('🔹 每日共同項目', ITEMS_COMMON);
+      renderSection('🏫 上課日專屬項目', ITEMS_WEEKDAY);
+      renderSection('🎈 假日專屬項目', ITEMS_WEEKEND);
     }
 
-    function closeImageModal() {
-      document.getElementById('image-modal').classList.add('hidden');
+    async function cycleGrade(item, dayIdx) {
+      const key = `${item}_${dayIdx}`;
+      const currentGrade = currentWeekScores[key] || '-';
+      const nextIdx = (GRADE_SEQUENCE.indexOf(currentGrade) + 1) % GRADE_SEQUENCE.length;
+      const nextGrade = GRADE_SEQUENCE[nextIdx];
+
+      currentWeekScores[key] = nextGrade;
+      renderMatrixTable();
+      calculateTotal();
+
+      const dateStr = weekDates[dayIdx];
+      const scoreVal = GRADE_MAP[nextGrade];
+
+      try {
+        await _supabase
+          .from('behavior_scores')
+          .upsert({
+            student_id: currentStudentId,
+            date: dateStr,
+            item_name: item,
+            grade: nextGrade,
+            score: scoreVal
+          }, { onConflict: 'student_id,date,item_name' });
+
+        await loadAllTimeScores();
+        renderTrendCharts();
+      } catch (err) {
+        console.error('更新分數失敗:', err);
+      }
     }
 
     function calculateTotal() {
@@ -742,9 +982,136 @@
       document.getElementById('total-money').innerText = totalRemainingMoney;
     }
 
-    // 初始化
+    function toggleOverrideInput() {
+      const box = document.getElementById('override-box');
+      box.classList.toggle('hidden');
+    }
+
+    function openTableImageModal() {
+      if (!currentTablePhotoUrl) return;
+      document.getElementById('modal-img').src = currentTablePhotoUrl;
+      document.getElementById('image-modal').classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+      document.getElementById('image-modal').classList.add('hidden');
+    }
+
+    // 📊 逐週數據報表與趨勢圖表繪製邏輯
+    function renderItemSelectorOptions() {
+      const select = document.getElementById('item-chart-selector');
+      select.innerHTML = '';
+      ALL_ITEMS.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.innerText = item;
+        select.appendChild(opt);
+      });
+    }
+
+    function renderTrendCharts() {
+      renderTotalTrendChart();
+      renderItemTrendChart();
+    }
+
+    function renderTotalTrendChart() {
+      const ctx = document.getElementById('chart-total-score').getContext('2d');
+      
+      // 依週次整理過去 6 週資料
+      const labels = [];
+      const dataPoints = [];
+
+      for (let i = -5; i <= 0; i++) {
+        const dates = getWeekDates(currentWeekOffset + i);
+        const weekLabel = `${dates[0].slice(5)} ~ ${dates[6].slice(5)}`;
+        labels.push(weekLabel);
+
+        let weekScoreSum = 0;
+        allTimeScores.forEach(s => {
+          if (s.item_name !== 'TABLE_PHOTO' && dates.includes(s.date)) {
+            weekScoreSum += (s.score || 0);
+          }
+        });
+        dataPoints.push(weekScoreSum);
+      }
+
+      if (chartTotalInstance) chartTotalInstance.destroy();
+
+      const themeColor = currentStudentId === 1 ? '#0284c7' : '#e11d48';
+
+      chartTotalInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '週總得分',
+            data: dataPoints,
+            borderColor: themeColor,
+            backgroundColor: themeColor + '20',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 3,
+            pointRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    function renderItemTrendChart() {
+      const selectedItem = document.getElementById('item-chart-selector').value || ALL_ITEMS[0];
+      const ctx = document.getElementById('chart-item-score').getContext('2d');
+
+      const labels = [];
+      const dataPoints = [];
+
+      for (let i = -5; i <= 0; i++) {
+        const dates = getWeekDates(currentWeekOffset + i);
+        const weekLabel = `${dates[0].slice(5)} ~ ${dates[6].slice(5)}`;
+        labels.push(weekLabel);
+
+        let itemScoreSum = 0;
+        allTimeScores.forEach(s => {
+          if (s.item_name === selectedItem && dates.includes(s.date)) {
+            itemScoreSum += (s.score || 0);
+          }
+        });
+        dataPoints.push(itemScoreSum);
+      }
+
+      if (chartItemInstance) chartItemInstance.destroy();
+
+      const themeColor = currentStudentId === 1 ? '#0d9488' : '#d97706';
+
+      chartItemInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: `${selectedItem} 當週累積得分`,
+            data: dataPoints,
+            backgroundColor: themeColor,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    // 初始化載入
     updateWeekDisplay();
-    switchStudent(1);
+    applyTheme(1);
+    loadData();
   </script>
 </body>
 </html>

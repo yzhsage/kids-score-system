@@ -7,15 +7,17 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans pb-12">
+<body id="app-body" class="bg-slate-100 text-slate-800 font-sans pb-12 transition-colors duration-300">
 
   <!-- 頂部導覽與學生切換 -->
-  <header class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50">
+  <header id="app-header" class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50 transition-colors duration-300">
     <div class="max-w-4xl mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-bold">🏠 家庭計分系統</h1>
+      <h1 class="text-xl font-bold flex items-center gap-2">
+        🏠 <span id="app-title-text">家庭計分系統</span>
+      </h1>
       <div class="flex gap-2">
-        <button id="btn-student-1" onclick="switchStudent(1)" class="px-4 py-1.5 rounded-full font-bold transition bg-sky-500 text-white">多多</button>
-        <button id="btn-student-2" onclick="switchStudent(2)" class="px-4 py-1.5 rounded-full font-bold transition bg-slate-700 text-slate-300">球球</button>
+        <button id="btn-student-1" onclick="switchStudent(1)" class="px-4 py-1.5 rounded-full font-bold transition">多多 👦</button>
+        <button id="btn-student-2" onclick="switchStudent(2)" class="px-4 py-1.5 rounded-full font-bold transition">球球 👶</button>
       </div>
     </div>
   </header>
@@ -27,10 +29,10 @@
       <div class="flex items-center gap-2">
         <button onclick="changeWeek(-1)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-sm font-bold transition">‹ 上一週</button>
         <button onclick="changeWeek(1)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-sm font-bold transition">下一週 ›</button>
-        <button onclick="resetToCurrentWeek()" class="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">回本週</button>
+        <button id="btn-current-week" onclick="resetToCurrentWeek()" class="text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">回本週</button>
       </div>
       <div class="text-sm font-semibold tracking-wide">
-        📅 週次區間：<span id="week-range-text" class="text-sky-300"></span>
+        📅 週次區間：<span id="week-range-text" class="font-bold"></span>
       </div>
     </div>
 
@@ -40,7 +42,7 @@
       <!-- 當週統計 -->
       <div class="space-y-2 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6">
         <div class="text-sm text-slate-500 font-medium">當前學生：<span id="current-student-name" class="font-bold text-slate-800">多多</span></div>
-        <div class="text-xl font-bold text-slate-700">當週得分：<span id="week-points" class="text-sky-600">0</span> 點</div>
+        <div class="text-xl font-bold text-slate-700">當週得分：<span id="week-points" class="theme-text-primary">0</span> 點</div>
         <div class="text-sm text-slate-500">當週預計可領：<span class="font-bold text-amber-600">$ <span id="week-money">0</span></span></div>
       </div>
 
@@ -61,7 +63,7 @@
             <div class="font-bold text-amber-900">✏️ 修改原始累積點數基準：</div>
             <div class="flex items-center gap-2">
               <input type="number" id="manual-base-input" placeholder="輸入新原始總點數" class="w-32 border border-slate-300 rounded px-2 py-1 text-sm">
-              <button onclick="saveManualBasePoints()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-2 py-1 rounded">更新總點數</button>
+              <button id="btn-save-base" onclick="saveManualBasePoints()" class="text-white font-bold px-2 py-1 rounded">更新總點數</button>
               <button onclick="resetManualBasePoints()" class="bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold px-2 py-1 rounded">恢復自動計算</button>
             </div>
           </div>
@@ -100,7 +102,7 @@
         <h2 class="font-bold text-lg text-slate-700">📋 行為紀錄表</h2>
         
         <!-- 表格共用拍照/上傳按鈕 -->
-        <label class="cursor-pointer bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-300 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1">
+        <label id="table-photo-btn-label" class="cursor-pointer border font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1">
           📷 <span id="table-photo-btn-text">拍照 / 上傳本週表格照片</span>
           <input type="file" id="table-photo-input" accept="image/*" capture="environment" class="hidden" onchange="uploadTablePhoto(event)">
         </label>
@@ -120,17 +122,18 @@
 
       <!-- 滾動容器：第一欄凍結效果 (sticky left-0) -->
       <div class="overflow-x-auto relative">
-        <table class="w-full text-center border-collapse min-w-[600px]">
+        <table class="w-full text-center border-collapse min-w-[650px]">
           <thead>
             <tr class="bg-slate-100 text-slate-600 text-sm">
               <th class="p-2 border border-slate-200 text-left w-28 sticky left-0 bg-slate-100 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">項目 / 日期</th>
-              <th class="p-2 border border-slate-200 min-w-[60px]" id="th-day-0">一<br><button onclick="toggleDayType(0)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-sky-100 text-sky-800" id="btn-type-0">上課</button></th>
-              <th class="p-2 border border-slate-200 min-w-[60px]" id="th-day-1">二<br><button onclick="toggleDayType(1)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-sky-100 text-sky-800" id="btn-type-1">上課</button></th>
-              <th class="p-2 border border-slate-200 min-w-[60px]" id="th-day-2">三<br><button onclick="toggleDayType(2)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-sky-100 text-sky-800" id="btn-type-2">上課</button></th>
-              <th class="p-2 border border-slate-200 min-w-[60px]" id="th-day-3">四<br><button onclick="toggleDayType(3)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-sky-100 text-sky-800" id="btn-type-3">上課</button></th>
-              <th class="p-2 border border-slate-200 min-w-[60px]" id="th-day-4">五<br><button onclick="toggleDayType(4)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-sky-100 text-sky-800" id="btn-type-4">上課</button></th>
-              <th class="p-2 border border-slate-200 min-w-[60px] bg-amber-50" id="th-day-5">六<br><button onclick="toggleDayType(5)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-amber-200 text-amber-900" id="btn-type-5">假日</button></th>
-              <th class="p-2 border border-slate-200 min-w-[60px] bg-amber-50" id="th-day-6">日<br><button onclick="toggleDayType(6)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-amber-200 text-amber-900" id="btn-type-6">假日</button></th>
+              <!-- 表頭含 [月/日] -->
+              <th class="p-2 border border-slate-200 min-w-[75px]" id="th-day-0">一<br><span id="date-label-0" class="text-[11px] font-normal text-slate-500"></span><br><button onclick="toggleDayType(0)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal" id="btn-type-0">上課</button></th>
+              <th class="p-2 border border-slate-200 min-w-[75px]" id="th-day-1">二<br><span id="date-label-1" class="text-[11px] font-normal text-slate-500"></span><br><button onclick="toggleDayType(1)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal" id="btn-type-1">上課</button></th>
+              <th class="p-2 border border-slate-200 min-w-[75px]" id="th-day-2">三<br><span id="date-label-2" class="text-[11px] font-normal text-slate-500"></span><br><button onclick="toggleDayType(2)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal" id="btn-type-2">上課</button></th>
+              <th class="p-2 border border-slate-200 min-w-[75px]" id="th-day-3">四<br><span id="date-label-3" class="text-[11px] font-normal text-slate-500"></span><br><button onclick="toggleDayType(3)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal" id="btn-type-3">上課</button></th>
+              <th class="p-2 border border-slate-200 min-w-[75px]" id="th-day-4">五<br><span id="date-label-4" class="text-[11px] font-normal text-slate-500"></span><br><button onclick="toggleDayType(4)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal" id="btn-type-4">上課</button></th>
+              <th class="p-2 border border-slate-200 min-w-[75px] bg-amber-50" id="th-day-5">六<br><span id="date-label-5" class="text-[11px] font-normal text-slate-500"></span><br><button onclick="toggleDayType(5)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-amber-200 text-amber-900" id="btn-type-5">假日</button></th>
+              <th class="p-2 border border-slate-200 min-w-[75px] bg-amber-50" id="th-day-6">日<br><span id="date-label-6" class="text-[11px] font-normal text-slate-500"></span><br><button onclick="toggleDayType(6)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-amber-200 text-amber-900" id="btn-type-6">假日</button></th>
             </tr>
           </thead>
           <tbody id="matrix-tbody" class="text-sm">
@@ -141,13 +144,18 @@
     </div>
 
     <!-- 額外加減分專區 -->
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-      <h2 class="font-bold text-lg text-slate-700 mb-4">✨ 額外加減分事項</h2>
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+      <h2 class="font-bold text-lg text-slate-700">✨ 額外加減分登記事項</h2>
       
-      <div class="flex flex-col sm:flex-row gap-2 mb-4">
-        <input type="text" id="extra-note" placeholder="事項說明（如：幫忙洗碗、表現優良）" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
-        <input type="number" id="extra-points" placeholder="分數 (+2 或 -1)" class="w-full sm:w-28 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
-        <button onclick="addExtraScore()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition">新增紀錄</button>
+      <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+        <!-- 日期選擇器 -->
+        <input type="date" id="extra-date" class="sm:col-span-3 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 theme-focus-ring">
+        <!-- 事項說明 -->
+        <input type="text" id="extra-note" placeholder="事項說明（如：幫忙洗碗、表現優良）" class="sm:col-span-5 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 theme-focus-ring">
+        <!-- 分數 -->
+        <input type="number" id="extra-points" placeholder="分數 (+2 或 -1)" class="sm:col-span-2 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 theme-focus-ring">
+        <!-- 新增按鈕 -->
+        <button id="btn-add-extra" onclick="addExtraScore()" class="sm:col-span-2 text-white font-bold px-4 py-2 rounded-lg text-sm transition">新增紀錄</button>
       </div>
 
       <ul id="extra-list" class="divide-y divide-slate-100 text-sm">
@@ -177,7 +185,7 @@
     let currentStudentId = 1;
     let studentNames = { 1: '多多', 2: '球球' };
     let currentWeekScores = {};
-    let dayTypes = [false, false, false, false, false, true, true]; // 預設 0-4 上課, 5-6 假日
+    let dayTypes = [false, false, false, false, false, true, true];
     let currentWeekOffset = 0;
     let weekDates = [];
     let allTimeScores = []; 
@@ -185,6 +193,9 @@
     let manualBasePoints = null;
     let deductionLogs = [];
     let currentTablePhotoUrl = null;
+
+    // 預設將額外項目的日期設為今天 (YYYY-MM-DD)
+    document.getElementById('extra-date').value = new Date().toISOString().split('T')[0];
 
     function getWeekDates(offsetInWeeks = 0) {
       const now = new Date();
@@ -206,6 +217,13 @@
     function updateWeekDisplay() {
       weekDates = getWeekDates(currentWeekOffset);
       document.getElementById('week-range-text').innerText = `${weekDates[0]} ~ ${weekDates[6]}`;
+
+      // 更新表頭月/日標籤 (例如: [08/03])
+      weekDates.forEach((dStr, idx) => {
+        const parts = dStr.split('-');
+        const monthDay = `[${parts[1]}/${parts[2]}]`;
+        document.getElementById(`date-label-${idx}`).innerText = monthDay;
+      });
     }
 
     function changeWeek(delta) {
@@ -224,18 +242,66 @@
       currentStudentId = id;
       document.getElementById('current-student-name').innerText = studentNames[id];
       
-      document.getElementById('btn-student-1').className = id === 1 ? 'px-4 py-1.5 rounded-full font-bold transition bg-sky-500 text-white' : 'px-4 py-1.5 rounded-full font-bold transition bg-slate-700 text-slate-300';
-      document.getElementById('btn-student-2').className = id === 2 ? 'px-4 py-1.5 rounded-full font-bold transition bg-sky-500 text-white' : 'px-4 py-1.5 rounded-full font-bold transition bg-slate-700 text-slate-300';
+      // 更新主題顏色系 (多多: 藍色 / 球球: 紅色)
+      applyTheme(id);
 
       document.getElementById('override-box').classList.add('hidden');
       loadData();
+    }
+
+    // 應用專屬主題顏色
+    function applyTheme(studentId) {
+      const body = document.getElementById('app-body');
+      const header = document.getElementById('app-header');
+      const btnStudent1 = document.getElementById('btn-student-1');
+      const btnStudent2 = document.getElementById('btn-student-2');
+      const weekPoints = document.getElementById('week-points');
+      const weekRangeText = document.getElementById('week-range-text');
+      const btnCurrentWeek = document.getElementById('btn-current-week');
+      const btnSaveBase = document.getElementById('btn-save-base');
+      const tablePhotoBtnLabel = document.getElementById('table-photo-btn-label');
+      const btnAddExtra = document.getElementById('btn-add-extra');
+
+      if (studentId === 1) {
+        // 多多：藍色系 (Deep Sky / Indigo)
+        body.className = "bg-sky-50/50 text-slate-800 font-sans pb-12 transition-colors duration-300";
+        header.className = "bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50 transition-colors duration-300";
+        
+        btnStudent1.className = 'px-4 py-1.5 rounded-full font-bold transition bg-sky-500 text-white shadow-sm ring-2 ring-sky-300';
+        btnStudent2.className = 'px-4 py-1.5 rounded-full font-bold transition bg-slate-800 text-slate-300 hover:text-white';
+
+        weekPoints.className = "text-sky-600 font-bold";
+        weekRangeText.className = "text-sky-300 font-bold";
+        btnCurrentWeek.className = "bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition";
+        btnSaveBase.className = "bg-sky-600 hover:bg-sky-700 text-white font-bold px-2 py-1 rounded";
+        
+        tablePhotoBtnLabel.className = "cursor-pointer bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-300 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1";
+        btnAddExtra.className = "sm:col-span-2 bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition";
+      } else {
+        // 球球：紅色系 (Vibrant Crimson / Rose)
+        body.className = "bg-rose-50/50 text-slate-800 font-sans pb-12 transition-colors duration-300";
+        header.className = "bg-rose-950 text-white p-4 shadow-md sticky top-0 z-50 transition-colors duration-300";
+        
+        btnStudent1.className = 'px-4 py-1.5 rounded-full font-bold transition bg-rose-900 text-slate-300 hover:text-white';
+        btnStudent2.className = 'px-4 py-1.5 rounded-full font-bold transition bg-rose-600 text-white shadow-sm ring-2 ring-rose-300';
+
+        weekPoints.className = "text-rose-600 font-bold";
+        weekRangeText.className = "text-rose-300 font-bold";
+        btnCurrentWeek.className = "bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition";
+        btnSaveBase.className = "bg-rose-600 hover:bg-rose-700 text-white font-bold px-2 py-1 rounded";
+
+        tablePhotoBtnLabel.className = "cursor-pointer bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1";
+        btnAddExtra.className = "sm:col-span-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition";
+      }
+
+      // 重新渲染表格以更新按鈕的主題色
+      updateDayTypeButtonsUI();
     }
 
     async function toggleDayType(dayIndex) {
       dayTypes[dayIndex] = !dayTypes[dayIndex];
       updateDayTypeButtonsUI();
 
-      // 儲存當週平假日設定至資料庫
       const mondayDate = weekDates[0];
       await _supabase.from('week_day_types').upsert({
         student_id: currentStudentId,
@@ -247,6 +313,7 @@
     }
 
     function updateDayTypeButtonsUI() {
+      const isDuo = currentStudentId === 1;
       for (let i = 0; i < 7; i++) {
         const btn = document.getElementById(`btn-type-${i}`);
         if (dayTypes[i]) {
@@ -254,7 +321,9 @@
           btn.className = 'text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-amber-200 text-amber-900';
         } else {
           btn.innerText = '上課';
-          btn.className = 'text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-sky-100 text-sky-800';
+          btn.className = isDuo 
+            ? 'text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-sky-100 text-sky-800'
+            : 'text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-rose-100 text-rose-800';
         }
       }
     }
@@ -272,7 +341,7 @@
       if (weekTypeData && weekTypeData.day_types) {
         dayTypes = weekTypeData.day_types;
       } else {
-        dayTypes = [false, false, false, false, false, true, true]; // 預設值
+        dayTypes = [false, false, false, false, false, true, true];
       }
       updateDayTypeButtonsUI();
 
@@ -341,7 +410,6 @@
 
       allItems.forEach(item => {
         const tr = document.createElement('tr');
-        // 加入 sticky left-0 凍結第一欄
         let rowHtml = `<td class="p-2 border border-slate-200 font-bold text-left bg-slate-50 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">${item}</td>`;
 
         weekDates.forEach((date, index) => {
@@ -356,8 +424,10 @@
             const grade = currentWeekScores[key] || '-';
             const badgeClass = getBadgeClass(grade);
 
+            const hoverBg = currentStudentId === 1 ? 'hover:bg-sky-50' : 'hover:bg-rose-50';
+
             rowHtml += `
-              <td class="p-2 border border-slate-200 hover:bg-sky-50 cursor-pointer transition select-none" onclick="toggleGrade('${date}', '${item}', '${grade}')">
+              <td class="p-2 border border-slate-200 ${hoverBg} cursor-pointer transition select-none" onclick="toggleGrade('${date}', '${item}', '${grade}')">
                 <span class="inline-block w-7 h-7 leading-7 rounded-full font-bold text-xs ${badgeClass}">${grade}</span>
               </td>
             `;
@@ -372,12 +442,13 @@
     }
 
     function getBadgeClass(grade) {
+      const isDuo = currentStudentId === 1;
       switch(grade) {
         case 'A': return 'bg-emerald-100 text-emerald-700 border border-emerald-300';
-        case 'B': return 'bg-sky-100 text-sky-700 border border-sky-300';
+        case 'B': return isDuo ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-rose-100 text-rose-700 border border-rose-300';
         case 'C': return 'bg-slate-100 text-slate-600';
         case 'D': return 'bg-amber-100 text-amber-700 border border-amber-300';
-        case 'E': return 'bg-rose-100 text-rose-700 border border-rose-300';
+        case 'E': return 'bg-purple-100 text-purple-700 border border-purple-300';
         default: return 'text-slate-300';
       }
     }
@@ -404,7 +475,6 @@
       loadData();
     }
 
-    // 上傳整張表格照片
     async function uploadTablePhoto(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -452,7 +522,6 @@
       event.target.value = '';
     }
 
-    // 刪除表格照片
     async function deleteTablePhoto() {
       if (!confirm('確定要刪除本週的表格照片嗎？')) return;
 
@@ -562,7 +631,8 @@
       const { data: allExtra } = await _supabase
         .from('extra_scores')
         .select('*')
-        .eq('student_id', currentStudentId);
+        .eq('student_id', currentStudentId)
+        .order('date', { ascending: false });
 
       const list = document.getElementById('extra-list');
       list.innerHTML = '';
@@ -584,8 +654,8 @@
               <div class="flex items-center gap-3">
                 <div>
                   <span class="font-bold ${item.points >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${item.points >= 0 ? '+' : ''}${item.points} 點</span>
-                  <span class="ml-2 text-slate-600">${item.note}</span>
-                  <span class="ml-2 text-xs text-slate-400">(${item.date})</span>
+                  <span class="ml-2 text-slate-700 font-medium">${item.note}</span>
+                  <span class="ml-2 text-xs text-slate-400 font-mono">(${item.date})</span>
                 </div>
               </div>
               <button onclick="deleteExtraScore(${item.id})" class="text-xs text-slate-400 hover:text-rose-500">刪除</button>
@@ -601,15 +671,15 @@
     }
 
     async function addExtraScore() {
-      const note = document.getElementById('extra-note').value;
+      const selectedDate = document.getElementById('extra-date').value;
+      const note = document.getElementById('extra-note').value.trim();
       const points = parseInt(document.getElementById('extra-points').value);
-      const today = weekDates[0];
 
-      if (!note || isNaN(points)) return alert('請填寫完整事項與加減分數！');
+      if (!selectedDate || !note || isNaN(points)) return alert('請填寫完整的發生日期、事項說明與加減分數！');
 
       await _supabase.from('extra_scores').insert({
         student_id: currentStudentId,
-        date: today,
+        date: selectedDate,
         points: points,
         note: note
       });

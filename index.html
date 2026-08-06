@@ -108,22 +108,33 @@
         </label>
       </div>
 
-      <div id="table-photo-container" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <img id="table-photo-preview" src="" class="w-16 h-16 object-cover rounded-lg border border-slate-300 cursor-pointer shadow-sm hover:scale-105 transition" onclick="openTableImageModal()">
-          <div>
-            <div class="font-bold text-sm text-slate-700">📷 本週紙本紀錄表照片</div>
-            <div class="text-xs text-slate-400">點擊縮圖可放大檢視</div>
-          </div>
-        </div>
-        
-        <div class="flex items-center gap-2">
-          <button id="btn-run-ocr" onclick="runOcrRecognition()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm transition">
-            🤖 啟動 OCR 自動辨識
-          </button>
-          <button onclick="deleteTablePhoto()" class="text-xs text-rose-500 hover:text-rose-700 font-bold px-2 py-1.5 bg-rose-50 border border-rose-200 rounded-lg">刪除照片</button>
-        </div>
-      </div>
+      <div class="mt-6 p-4 bg-white rounded-xl shadow-sm border border-slate-200">
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div>
+      <h3 class="font-bold text-slate-800 flex items-center gap-2">
+        📸 本週白板紀錄照片
+      </h3>
+      <p class="text-xs text-slate-500 mt-1">上傳白板照片後，可點擊右側按鈕自動辨識填表</p>
+    </div>
+    
+    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+      <input type="file" id="table-photo-input" accept="image/*" style="display: none;" onchange="uploadTablePhoto(event)">
+      
+      <button onclick="document.getElementById('table-photo-input').click()" class="flex-1 sm:flex-initial px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition flex items-center justify-center gap-2 text-sm">
+        📷 <span id="table-photo-btn-text">上傳 / 拍照</span>
+      </button>
+
+      <button id="btn-run-ocr" onclick="runOCR()" class="flex-1 sm:flex-initial px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow transition flex items-center justify-center gap-2 text-sm hidden">
+        🤖 啟動 OCR 自動辨識
+      </button>
+    </div>
+  </div>
+
+  <div id="table-photo-container" class="mt-4 hidden">
+    <img id="table-photo-preview" src="" alt="白板照片預覽" class="max-h-80 rounded-lg mx-auto border shadow-sm object-contain" />
+  </div>
+</div>
+
 
       <div id="ocr-loading" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center text-xs font-bold text-indigo-700 animate-pulse">
         ⏳ 正在分析影像並辨識行為項目與評級中，請稍候...

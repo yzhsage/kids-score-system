@@ -100,42 +100,54 @@
     <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
       <div class="flex flex-wrap justify-between items-center gap-2">
         <h2 class="font-bold text-lg text-slate-700">📋 行為紀錄表</h2>
-        
-        <label id="table-photo-btn-label" class="cursor-pointer border font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1">
-          📷 <span id="table-photo-btn-text">拍照 / 上傳本週表格照片</span>
-          <input type="file" id="table-photo-input" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
-
-        </label>
       </div>
 
-      <div class="mt-6 p-4 bg-white rounded-xl shadow-sm border border-slate-200">
-  <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+<!-- 📷 本週白板紀錄照片區塊 (已完全替換舊 label) -->
+<div class="my-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
     <div>
-      <h3 class="font-bold text-slate-800 flex items-center gap-2">
+      <div class="font-bold text-slate-800 text-base flex items-center gap-1.5">
         📸 本週白板紀錄照片
-      </h3>
-      <p class="text-xs text-slate-500 mt-1">上傳白板照片後，可點擊右側按鈕自動辨識填表</p>
+      </div>
+      <p class="text-xs text-slate-500 mt-0.5">上傳白板照片後，可點擊右側按鈕進行 AI 自動辨識填表</p>
     </div>
-    
-    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+      <!-- 隱藏原生檔案輸入框，完全不佔用空間與視覺 -->
       <input type="file" id="table-photo-input" accept="image/*" style="display: none;" onchange="uploadTablePhoto(event)">
       
-      <button onclick="document.getElementById('table-photo-input').click()" class="flex-1 sm:flex-initial px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition flex items-center justify-center gap-2 text-sm">
-        📷 <span id="table-photo-btn-text">上傳 / 拍照</span>
+      <!-- 上傳/拍照按鈕 (橫向按鈕) -->
+      <button type="button" onclick="document.getElementById('table-photo-input').click()" class="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
+        📷 <span id="table-photo-btn-text">拍照 / 上傳照片</span>
       </button>
 
-      <button id="btn-run-ocr" onclick="runOCR()" class="flex-1 sm:flex-initial px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow transition flex items-center justify-center gap-2 text-sm hidden">
-        🤖 啟動 OCR 自動辨識
+      <!-- OCR 辨識按鈕 (上傳成功後顯示) -->
+      <button type="button" id="btn-run-ocr" onclick="runOCR()" class="flex-1 sm:flex-none px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm rounded-lg shadow-sm transition flex items-center justify-center gap-1.5 hidden">
+        🤖 啟動 OCR 辨識
       </button>
     </div>
   </div>
 
-  <div id="table-photo-container" class="mt-4 hidden">
-    <img id="table-photo-preview" src="" alt="白板照片預覽" class="max-h-80 rounded-lg mx-auto border shadow-sm object-contain" />
+  <!-- 照片預覽區 (點擊可全螢幕放大) -->
+  <div id="table-photo-container" class="mt-3 hidden text-center">
+    <div class="inline-block relative group cursor-pointer" onclick="openPhotoModal()">
+      <img id="table-photo-preview" src="" alt="白板照片" class="max-h-48 rounded-lg border border-slate-300 shadow-sm object-contain" />
+      <div class="absolute inset-0 bg-black/30 rounded-lg opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold">
+        🔍 點擊放大查看
+      </div>
+    </div>
   </div>
 </div>
 
+<!-- 🔍 照片全螢幕放大 Modal -->
+<div id="photo-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4" onclick="closePhotoModal()">
+  <div class="relative max-w-4xl max-h-full">
+    <img id="photo-modal-img" src="" class="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+    <button class="absolute -top-10 right-0 text-white text-xl font-bold bg-white/20 px-3 py-1 rounded-full">✕ 關閉</button>
+  </div>
+</div>
 
+      
       <div id="ocr-loading" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center text-xs font-bold text-indigo-700 animate-pulse">
         ⏳ 正在分析影像並辨識行為項目與評級中，請稍候...
       </div>
@@ -615,25 +627,29 @@ async function uploadTablePhoto(e) {
   if (!file) return;
 
   const btnText = document.getElementById('table-photo-btn-text');
-  btnText.innerText = '上傳中...';
+  if (btnText) btnText.innerText = '上傳中...';
 
   try {
+    // 檔名設定：以學生 ID、當週日期與時間戳記命名
     const fileExt = file.name.split('.').pop();
     const fileName = `table_${currentStudentId}_${weekDates[0]}_${Date.now()}.${fileExt}`;
     const filePath = `tables/${fileName}`;
 
+    // 1. 上傳照片到 Supabase Storage (使用 receipts 儲存桶)
     const { error: uploadErr } = await _supabase.storage
       .from('receipts')
       .upload(filePath, file);
 
     if (uploadErr) throw uploadErr;
 
+    // 2. 取得公開讀取網址
     const { data: publicUrlData } = _supabase.storage
       .from('receipts')
       .getPublicUrl(filePath);
 
     const publicUrl = publicUrlData.publicUrl;
 
+    // 3. 將照片網址寫入 Supabase 資料庫 (behavior_scores 資料表)
     await _supabase
       .from('behavior_scores')
       .upsert({
@@ -644,16 +660,30 @@ async function uploadTablePhoto(e) {
         score: 0
       }, { onConflict: 'student_id,date,item_name' });
 
+    // 4. 更新前端畫面狀態：顯示預覽圖與 OCR 按鈕
     currentTablePhotoUrl = publicUrl;
-    document.getElementById('table-photo-preview').src = publicUrl;
-    document.getElementById('table-photo-container').classList.remove('hidden');
-    btnText.innerText = '拍照 / 上傳本週表格照片';
+    
+    const previewImg = document.getElementById('table-photo-preview');
+    if (previewImg) previewImg.src = publicUrl;
+
+    // 顯示預覽容器與 OCR 按鈕
+    const photoContainer = document.getElementById('table-photo-container');
+    if (photoContainer) photoContainer.classList.remove('hidden');
+
+    const ocrBtn = document.getElementById('btn-run-ocr');
+    if (ocrBtn) ocrBtn.classList.remove('hidden');
+
+    // 5. 恢復按鈕文字與重置 input
+    if (btnText) btnText.innerText = '拍照 / 上傳照片';
     e.target.value = '';
+
   } catch (err) {
+    console.error('照片上傳失敗：', err);
     alert('❌ 照片上傳失敗：' + err.message);
-    btnText.innerText = '拍照 / 上傳本週表格照片';
+    if (btnText) btnText.innerText = '拍照 / 上傳照片';
   }
 }
+
 
 
     async function deleteTablePhoto() {
@@ -1120,6 +1150,17 @@ ${ALL_ITEMS.join(', ')}
         }
       });
     }
+// 🔍 相片燈箱全螢幕放大與關閉
+function openPhotoModal() {
+  const src = document.getElementById('table-photo-preview').src;
+  if (!src) return;
+  document.getElementById('photo-modal-img').src = src;
+  document.getElementById('photo-modal').classList.remove('hidden');
+}
+
+function closePhotoModal() {
+  document.getElementById('photo-modal').classList.add('hidden');
+}
 
     // 初始化載入
     updateWeekDisplay();

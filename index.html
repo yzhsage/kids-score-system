@@ -10,6 +10,7 @@
 </head>
 <body id="app-body" class="bg-slate-100 text-slate-800 font-sans pb-12 transition-colors duration-300">
 
+  <!-- 頂部頁首與小孩切換 -->
   <header id="app-header" class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50 transition-colors duration-300">
     <div class="max-w-4xl mx-auto flex justify-between items-center">
       <h1 class="text-xl font-bold flex items-center gap-2">
@@ -24,6 +25,7 @@
 
   <main class="max-w-4xl mx-auto p-4 space-y-6">
 
+    <!-- 🔑 Gemini API 設定 -->
     <div class="bg-indigo-900 text-white rounded-2xl p-4 shadow-sm flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center gap-2 text-sm font-bold">
         🔑 Gemini API 金鑰設定 <span class="text-xs text-indigo-200 font-normal">(供白板拍照 OCR 自動辨識填表使用)</span>
@@ -34,6 +36,7 @@
       </div>
     </div>
 
+    <!-- 📅 週次選擇切換 -->
     <div class="bg-slate-800 text-white rounded-2xl p-4 shadow-sm flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center gap-2">
         <button onclick="changeWeek(-1)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-sm font-bold transition">‹ 上一週</button>
@@ -45,11 +48,11 @@
       </div>
     </div>
 
+    <!-- 💰 點數與金額統計卡片 -->
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6">
-      
       <div class="space-y-2 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6">
         <div class="text-sm text-slate-500 font-medium">當前小孩：<span id="current-student-name" class="font-bold text-slate-800">多多</span></div>
-        <div class="text-xl font-bold text-slate-700">當週得分：<span id="week-points" class="theme-text-primary">0</span> 點</div>
+        <div class="text-xl font-bold text-slate-700">當週得分：<span id="week-points" class="font-bold text-sky-600">0</span> 點</div>
         <div class="text-sm text-slate-500">當週預計可領：<span class="font-bold text-amber-600">$ <span id="week-money">0</span></span></div>
       </div>
 
@@ -61,13 +64,13 @@
         <div class="text-2xl font-black text-slate-800">累積剩餘總分：<span id="total-points" class="text-emerald-600">0</span> 點</div>
         <div class="text-2xl font-black text-amber-600">總剩餘可領金額：$ <span id="total-money">0</span></div>
 
+        <!-- ⚙️ 修改與扣除展開選單 -->
         <div id="override-box" class="hidden mt-3 p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-4 text-xs">
-          
           <div class="p-2 bg-white rounded-lg border border-amber-200 space-y-2">
             <div class="font-bold text-amber-900">✏️ 修改原始累積點數基準：</div>
             <div class="flex items-center gap-2">
               <input type="number" id="manual-base-input" placeholder="輸入新原始總點數" class="w-32 border border-slate-300 rounded px-2 py-1 text-sm">
-              <button id="btn-save-base" onclick="saveManualBasePoints()" class="text-white font-bold px-2 py-1 rounded">更新總點數</button>
+              <button id="btn-save-base" onclick="saveManualBasePoints()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-2 py-1 rounded">更新總點數</button>
               <button onclick="resetManualBasePoints()" class="bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold px-2 py-1 rounded">恢復自動計算</button>
             </div>
           </div>
@@ -81,114 +84,58 @@
               <input type="number" id="deduct-points-input" placeholder="點數" class="w-20 border border-slate-300 rounded px-2 py-1 text-sm">
               <button onclick="addDeduction()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1 rounded">直接扣除</button>
             </div>
-            <div class="text-[11px] text-amber-800/80">
-              💡 填金額會自動無條件進位扣點；填點數則直接扣除。
-            </div>
           </div>
 
           <div>
             <div class="font-bold text-slate-700 mb-1">📜 歷次扣減明細：</div>
-            <ul id="deduction-log-list" class="divide-y divide-amber-200/60 max-h-32 overflow-y-auto pr-1">
-              </ul>
+            <ul id="deduction-log-list" class="divide-y divide-amber-200/60 max-h-32 overflow-y-auto pr-1"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📋 行為紀錄表與白板上傳區 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
+      <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+        📋 行為紀錄表
+      </h2>
+
+      <!-- 📸 本週白板照片上傳 -->
+      <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <div class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+              📸 <span id="photo-owner-name">多多</span> 的本週白板紀錄照片
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">上傳後點擊右側按鈕進行 AI 自動辨識填表</p>
           </div>
 
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <input type="file" id="table-photo-input" accept="image/*" style="display:none;" onchange="uploadTablePhoto(event)">
+            
+            <button type="button" onclick="document.getElementById('table-photo-input').click()" class="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
+              📷 <span id="table-photo-btn-text">拍照 / 上傳照片</span>
+            </button>
+
+            <button type="button" id="btn-run-ocr" onclick="runOCR()" class="flex-1 sm:flex-none px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm rounded-lg shadow-sm transition flex items-center justify-center gap-1.5 hidden">
+              🤖 啟動 OCR 辨識
+            </button>
+          </div>
+        </div>
+
+        <div id="table-photo-container" class="mt-3 hidden text-center">
+          <div class="inline-block relative group cursor-pointer" onclick="openPhotoModal()">
+            <img id="table-photo-preview" src="" alt="白板照片" class="max-h-48 rounded-lg border border-slate-300 shadow-sm object-contain mx-auto" />
+            <div class="text-xs text-indigo-600 font-bold mt-1">🔍 點擊放大查看照片</div>
+          </div>
         </div>
       </div>
 
-    </div>
-
-<!-- 📋 行為紀錄表區塊 -->
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-6">
-  <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-    📋 行為紀錄表
-  </h2>
-
-  <!-- 📸 本週白板紀錄照片區塊 -->
-  <div class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-      <div>
-        <div class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-          📸 <span id="photo-owner-name">多多</span> 的本週白板紀錄照片
-        </div>
-        <p class="text-xs text-slate-500 mt-0.5">上傳後點擊右側按鈕進行 AI 自動辨識填表</p>
-      </div>
-
-      <div class="flex items-center gap-2 w-full sm:w-auto">
-        <input type="file" id="table-photo-input" accept="image/*" style="display:none;" onchange="uploadTablePhoto(event)">
-        
-        <button type="button" onclick="document.getElementById('table-photo-input').click()" class="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
-          📷 <span id="table-photo-btn-text">拍照 / 上傳照片</span>
-        </button>
-
-        <button type="button" id="btn-run-ocr" onclick="runOCR()" class="flex-1 sm:flex-none px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm rounded-lg shadow-sm transition flex items-center justify-center gap-1.5 hidden">
-          🤖 啟動 OCR 辨識
-        </button>
-      </div>
-    </div>
-
-    <!-- 照片預覽區 -->
-    <div id="table-photo-container" class="mt-3 hidden text-center">
-      <div class="inline-block relative group cursor-pointer" onclick="openPhotoModal()">
-        <img id="table-photo-preview" src="" alt="白板照片" class="max-h-48 rounded-lg border border-slate-300 shadow-sm object-contain mx-auto" />
-        <div class="text-xs text-indigo-600 font-bold mt-1">🔍 點擊放大查看照片</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 📊 行為紀錄表格 (確保 tbody 存在) -->
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm text-left text-slate-600">
-      <thead class="text-xs text-slate-700 uppercase bg-slate-100" id="behavior-table-head">
-        <!-- JS 自動生成日期標頭 -->
-      </thead>
-      <tbody id="behavior-table-body">
-        <!-- JS 自動生成表格內容 -->
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- 📈 逐週數據統計趨勢圖區塊 -->
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-6">
-  <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-    📈 逐週數據統計趨勢
-  </h2>
-  
-  <div class="space-y-6">
-    <div>
-      <h3 class="font-bold text-slate-700 text-sm mb-2">🏆 每週總得分趨勢圖</h3>
-      <div class="h-64 w-full">
-        <canvas id="trendChart"></canvas>
-      </div>
-    </div>
-
-    <div class="border-t pt-4">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="font-bold text-slate-700 text-sm">🎯 行為分項每週得分趨勢圖</h3>
-        <select id="item-trend-select" onchange="updateItemTrendChart()" class="text-xs p-1.5 border rounded-lg bg-slate-50">
-          <!-- JS 自動動態載入行為項目選項 -->
-        </select>
-      </div>
-      <div class="h-64 w-full">
-        <canvas id="itemTrendChart"></canvas>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 🔍 全螢幕照片檢視 Modal -->
-<div id="photo-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4" onclick="closePhotoModal()">
-  <div class="relative max-w-4xl max-h-full">
-    <img id="photo-modal-img" src="" class="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
-    <button class="absolute -top-10 right-0 text-white text-xl font-bold bg-white/20 px-3 py-1 rounded-full">✕ 關閉</button>
-  </div>
-</div>
-
-      
       <div id="ocr-loading" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center text-xs font-bold text-indigo-700 animate-pulse">
         ⏳ 正在分析影像並辨識行為項目與評級中，請稍候...
       </div>
 
+      <!-- 📊 行為矩陣表格 -->
       <div class="overflow-x-auto relative">
         <table class="w-full text-center border-collapse min-w-[650px]">
           <thead>
@@ -203,26 +150,24 @@
               <th class="p-2 border border-slate-200 min-w-[75px] bg-amber-50" id="th-day-6">日<br><span id="date-label-6" class="text-[11px] font-normal text-slate-500"></span><br><button onclick="toggleDayType(6)" class="text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-amber-200 text-amber-900" id="btn-type-6">假日</button></th>
             </tr>
           </thead>
-          <tbody id="matrix-tbody" class="text-sm">
-            </tbody>
+          <tbody id="matrix-tbody" class="text-sm"></tbody>
         </table>
       </div>
     </div>
 
+    <!-- ✨ 額外加減分 -->
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
       <h2 class="font-bold text-lg text-slate-700">✨ 額外加減分登記事項</h2>
-      
       <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
-        <input type="date" id="extra-date" class="sm:col-span-3 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 theme-focus-ring">
-        <input type="text" id="extra-note" placeholder="事項說明（如：幫忙洗碗、表現優良）" class="sm:col-span-5 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 theme-focus-ring">
-        <input type="number" id="extra-points" placeholder="分數 (+2 或 -1)" class="sm:col-span-2 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 theme-focus-ring">
-        <button id="btn-add-extra" onclick="addExtraScore()" class="sm:col-span-2 text-white font-bold px-4 py-2 rounded-lg text-sm transition">新增紀錄</button>
+        <input type="date" id="extra-date" class="sm:col-span-3 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none">
+        <input type="text" id="extra-note" placeholder="事項說明（如：幫忙洗碗、表現優良）" class="sm:col-span-5 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none">
+        <input type="number" id="extra-points" placeholder="分數 (+2 或 -1)" class="sm:col-span-2 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none">
+        <button id="btn-add-extra" onclick="addExtraScore()" class="sm:col-span-2 bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition">新增紀錄</button>
       </div>
-
-      <ul id="extra-list" class="divide-y divide-slate-100 text-sm">
-        </ul>
+      <ul id="extra-list" class="divide-y divide-slate-100 text-sm"></ul>
     </div>
 
+    <!-- 📈 逐週數據統計趨勢圖 -->
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
       <h2 class="font-bold text-lg text-slate-700 flex items-center gap-2">
         📈 逐週數據統計趨勢
@@ -238,8 +183,7 @@
       <div class="space-y-3 pt-4 border-t border-slate-100">
         <div class="flex flex-wrap justify-between items-center gap-2">
           <h3 class="text-sm font-bold text-slate-600">🎯 行為分項每週得分趨勢圖</h3>
-          <select id="item-chart-selector" onchange="renderItemTrendChart()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs font-bold text-slate-700 focus:outline-none">
-            </select>
+          <select id="item-chart-selector" onchange="renderItemTrendChart()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs font-bold text-slate-700 focus:outline-none"></select>
         </div>
         <div class="relative h-64 w-full">
           <canvas id="chart-item-score"></canvas>
@@ -249,8 +193,12 @@
 
   </main>
 
-  <div id="image-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onclick="closeImageModal()">
-    <img id="modal-img" src="" class="max-w-full max-h-[90vh] rounded-lg shadow-xl object-contain">
+  <!-- 🔍 全螢幕照片檢視 Modal -->
+  <div id="photo-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4" onclick="closePhotoModal()">
+    <div class="relative max-w-4xl max-h-full">
+      <img id="photo-modal-img" src="" class="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+      <button class="absolute -top-10 right-0 text-white text-xl font-bold bg-white/20 px-3 py-1 rounded-full">✕ 關閉</button>
+    </div>
   </div>
 
   <script>
@@ -266,7 +214,7 @@
     const ITEMS_WEEKEND = ['算術', '語言', '行為'];
     const ALL_ITEMS = [...ITEMS_COMMON, ...ITEMS_WEEKDAY, ...ITEMS_WEEKEND];
 
-    let currentStudentId = 1;
+    let currentStudentId = 1; // 1代表多多，2代表球球
     let studentNames = { 1: '多多', 2: '球球' };
     let currentWeekScores = {};
     let dayTypes = [false, false, false, false, false, true, true];
@@ -281,13 +229,11 @@
     let chartTotalInstance = null;
     let chartItemInstance = null;
 
-    // 預設載入 Gemini API Key
+    // 載入預設值
     const savedApiKey = localStorage.getItem('GEMINI_API_KEY') || '';
     if (savedApiKey) {
       document.getElementById('gemini-api-key-input').value = savedApiKey;
     }
-
-    // 預設將額外項目的日期設為今天 (YYYY-MM-DD)
     document.getElementById('extra-date').value = new Date().toISOString().split('T')[0];
 
     function saveGeminiApiKey() {
@@ -314,12 +260,9 @@
     function updateWeekDisplay() {
       weekDates = getWeekDates(currentWeekOffset);
       document.getElementById('week-range-text').innerText = `${weekDates[0]} ~ ${weekDates[6]}`;
-      
-      // 更新表頭月/日標籤 (例如: [08/03])
       weekDates.forEach((dStr, idx) => {
         const parts = dStr.split('-');
-        const monthDay = `[${parts[1]}/${parts[2]}]`;
-        document.getElementById(`date-label-${idx}`).innerText = monthDay;
+        document.getElementById(`date-label-${idx}`).innerText = `[${parts[1]}/${parts[2]}]`;
       });
     }
 
@@ -338,6 +281,7 @@
     function switchStudent(id) {
       currentStudentId = id;
       document.getElementById('current-student-name').innerText = studentNames[id];
+      document.getElementById('photo-owner-name').innerText = studentNames[id];
       applyTheme(id);
       document.getElementById('override-box').classList.add('hidden');
       loadData();
@@ -352,7 +296,6 @@
       const weekRangeText = document.getElementById('week-range-text');
       const btnCurrentWeek = document.getElementById('btn-current-week');
       const btnSaveBase = document.getElementById('btn-save-base');
-      const tablePhotoBtnLabel = document.getElementById('table-photo-btn-label');
       const btnAddExtra = document.getElementById('btn-add-extra');
 
       if (studentId === 1) {
@@ -364,7 +307,6 @@
         weekRangeText.className = "text-sky-300 font-bold";
         btnCurrentWeek.className = "bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition";
         btnSaveBase.className = "bg-sky-600 hover:bg-sky-700 text-white font-bold px-2 py-1 rounded";
-        tablePhotoBtnLabel.className = "cursor-pointer bg-sky-50 border-sky-300 text-sky-700 hover:bg-sky-100 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1";
         btnAddExtra.className = "sm:col-span-2 bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition";
       } else {
         body.className = "bg-rose-50/50 text-slate-800 font-sans pb-12 transition-colors duration-300";
@@ -375,7 +317,6 @@
         weekRangeText.className = "text-rose-300 font-bold";
         btnCurrentWeek.className = "bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition";
         btnSaveBase.className = "bg-rose-600 hover:bg-rose-700 text-white font-bold px-2 py-1 rounded";
-        tablePhotoBtnLabel.className = "cursor-pointer bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1";
         btnAddExtra.className = "sm:col-span-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition";
       }
     }
@@ -387,7 +328,7 @@
       await loadManualBasePoints();
       await loadDeductionLogs();
       await loadExtraScores();
-      await loadTablePhoto();
+      await loadStudentTablePhoto();
 
       renderMatrixTable();
       calculateTotal();
@@ -397,21 +338,17 @@
 
     async function loadDayTypes() {
       try {
-        const { data, error } = await _supabase
+        const { data } = await _supabase
           .from('weekly_day_types')
           .select('day_types')
           .eq('student_id', currentStudentId)
           .eq('start_date', weekDates[0])
           .maybeSingle();
 
-        if (data && data.day_types) {
-          dayTypes = data.day_types;
-        } else {
-          dayTypes = [false, false, false, false, false, true, true];
-        }
+        dayTypes = (data && data.day_types) ? data.day_types : [false, false, false, false, false, true, true];
         updateDayTypeHeadersUI();
       } catch (err) {
-        console.error('載入平假日設定失敗:', err);
+        console.error('載入平假日失敗:', err);
       }
     }
 
@@ -419,8 +356,7 @@
       for (let i = 0; i < 7; i++) {
         const btn = document.getElementById(`btn-type-${i}`);
         const th = document.getElementById(`th-day-${i}`);
-        const isWeekend = dayTypes[i];
-        if (isWeekend) {
+        if (dayTypes[i]) {
           btn.innerText = '假日';
           btn.className = 'text-[10px] px-1.5 py-0.5 rounded mt-1 font-normal bg-amber-200 text-amber-900';
           th.className = 'p-2 border border-slate-200 min-w-[75px] bg-amber-50';
@@ -438,73 +374,52 @@
       renderMatrixTable();
       calculateTotal();
 
-      try {
-        await _supabase
-          .from('weekly_day_types')
-          .upsert({
-            student_id: currentStudentId,
-            start_date: weekDates[0],
-            day_types: dayTypes
-          });
-      } catch (err) {
-        console.error('儲存平假日設定失敗:', err);
-      }
+      await _supabase.from('weekly_day_types').upsert({
+        student_id: currentStudentId,
+        start_date: weekDates[0],
+        day_types: dayTypes
+      });
     }
 
     async function loadCurrentWeekScores() {
       currentWeekScores = {};
-      try {
-        const { data, error } = await _supabase
-          .from('behavior_scores')
-          .select('*')
-          .eq('student_id', currentStudentId)
-          .in('date', weekDates);
+      const { data } = await _supabase
+        .from('behavior_scores')
+        .select('*')
+        .eq('student_id', currentStudentId)
+        .in('date', weekDates);
 
-        if (data) {
-          data.forEach(item => {
-            const dayIdx = weekDates.indexOf(item.date);
-            if (dayIdx !== -1) {
-              const key = `${item.item_name}_${dayIdx}`;
-              currentWeekScores[key] = item.grade || '-';
-            }
-          });
-        }
-      } catch (err) {
-        console.error('載入當週分數失敗:', err);
+      if (data) {
+        data.forEach(item => {
+          const dayIdx = weekDates.indexOf(item.date);
+          if (dayIdx !== -1) {
+            currentWeekScores[`${item.item_name}_${dayIdx}`] = item.grade || '-';
+          }
+        });
       }
     }
 
     async function loadAllTimeScores() {
-      try {
-        const { data, error } = await _supabase
-          .from('behavior_scores')
-          .select('*')
-          .eq('student_id', currentStudentId);
-
-        allTimeScores = data || [];
-      } catch (err) {
-        console.error('載入所有分數失敗:', err);
-        allTimeScores = [];
-      }
+      const { data } = await _supabase
+        .from('behavior_scores')
+        .select('*')
+        .eq('student_id', currentStudentId);
+      allTimeScores = data || [];
     }
 
     async function loadManualBasePoints() {
-      try {
-        const { data, error } = await _supabase
-          .from('student_base_points')
-          .select('base_points')
-          .eq('student_id', currentStudentId)
-          .maybeSingle();
+      const { data } = await _supabase
+        .from('student_base_points')
+        .select('base_points')
+        .eq('student_id', currentStudentId)
+        .maybeSingle();
 
-        if (data && data.base_points !== null) {
-          manualBasePoints = data.base_points;
-          document.getElementById('manual-base-input').value = manualBasePoints;
-        } else {
-          manualBasePoints = null;
-          document.getElementById('manual-base-input').value = '';
-        }
-      } catch (err) {
-        console.error('載入原始累積點數失敗:', err);
+      if (data && data.base_points !== null) {
+        manualBasePoints = data.base_points;
+        document.getElementById('manual-base-input').value = manualBasePoints;
+      } else {
+        manualBasePoints = null;
+        document.getElementById('manual-base-input').value = '';
       }
     }
 
@@ -512,58 +427,34 @@
       const val = document.getElementById('manual-base-input').value;
       if (val === '') return;
       const newBase = parseInt(val, 10);
-
-      try {
-        await _supabase
-          .from('student_base_points')
-          .upsert({ student_id: currentStudentId, base_points: newBase });
-
-        manualBasePoints = newBase;
-        calculateTotal();
-        alert('✅ 原始點數已成功儲存！');
-      } catch (err) {
-        alert('❌ 儲存失敗：' + err.message);
-      }
+      await _supabase.from('student_base_points').upsert({ student_id: currentStudentId, base_points: newBase });
+      manualBasePoints = newBase;
+      calculateTotal();
+      alert('✅ 原始點數已儲存！');
     }
 
     async function resetManualBasePoints() {
-      try {
-        await _supabase
-          .from('student_base_points')
-          .delete()
-          .eq('student_id', currentStudentId);
-
-        manualBasePoints = null;
-        document.getElementById('manual-base-input').value = '';
-        calculateTotal();
-        alert('✅ 已恢復為自動計算！');
-      } catch (err) {
-        alert('❌ 重置失敗：' + err.message);
-      }
+      await _supabase.from('student_base_points').delete().eq('student_id', currentStudentId);
+      manualBasePoints = null;
+      document.getElementById('manual-base-input').value = '';
+      calculateTotal();
+      alert('✅ 已恢復自動計算！');
     }
 
     async function loadDeductionLogs() {
-      try {
-        const { data, error } = await _supabase
-          .from('deduction_logs')
-          .select('*')
-          .eq('student_id', currentStudentId)
-          .order('created_at', { ascending: false });
+      const { data } = await _supabase
+        .from('deduction_logs')
+        .select('*')
+        .eq('student_id', currentStudentId)
+        .order('created_at', { ascending: false });
 
-        deductionLogs = data || [];
-        renderDeductionLogs();
-      } catch (err) {
-        console.error('載入扣除紀錄失敗:', err);
-      }
+      deductionLogs = data || [];
+      renderDeductionLogs();
     }
 
     function renderDeductionLogs() {
       const ul = document.getElementById('deduction-log-list');
-      ul.innerHTML = '';
-      if (deductionLogs.length === 0) {
-        ul.innerHTML = '<li class="py-1 text-slate-400 font-normal">尚無扣除紀錄</li>';
-        return;
-      }
+      ul.innerHTML = deductionLogs.length === 0 ? '<li class="py-1 text-slate-400 font-normal">尚無扣除紀錄</li>' : '';
       deductionLogs.forEach(log => {
         const li = document.createElement('li');
         li.className = 'py-1 flex justify-between items-center';
@@ -586,211 +477,121 @@
       const moneyVal = document.getElementById('deduct-money-input').value;
       const pointsVal = document.getElementById('deduct-points-input').value;
 
-      let deductedPoints = 0;
-      let deductedMoney = 0;
+      let deductedPoints = moneyVal ? Math.ceil(parseFloat(moneyVal) / 5) : parseInt(pointsVal, 10);
+      let deductedMoney = moneyVal ? parseFloat(moneyVal) : deductedPoints * 5;
 
-      if (moneyVal) {
-        deductedMoney = parseFloat(moneyVal);
-        deductedPoints = Math.ceil(deductedMoney / 5);
-      } else if (pointsVal) {
-        deductedPoints = parseInt(pointsVal, 10);
-        deductedMoney = deductedPoints * 5;
-      } else {
-        alert('請輸入金額或點數！');
-        return;
-      }
+      if (!deductedPoints) return alert('請輸入金額或點數！');
 
-      try {
-        await _supabase
-          .from('deduction_logs')
-          .insert({
-            student_id: currentStudentId,
-            note: note || '扣除項',
-            deducted_points: deductedPoints,
-            deducted_money: deductedMoney
-          });
+      await _supabase.from('deduction_logs').insert({
+        student_id: currentStudentId,
+        note: note || '扣除項',
+        deducted_points: deductedPoints,
+        deducted_money: deductedMoney
+      });
 
-        document.getElementById('deduct-note-input').value = '';
-        document.getElementById('deduct-money-input').value = '';
-        document.getElementById('deduct-points-input').value = '';
-
-        await loadDeductionLogs();
-        calculateTotal();
-      } catch (err) {
-        alert('❌ 新增扣除紀錄失敗：' + err.message);
-      }
+      document.getElementById('deduct-note-input').value = '';
+      document.getElementById('deduct-money-input').value = '';
+      document.getElementById('deduct-points-input').value = '';
+      await loadDeductionLogs();
+      calculateTotal();
     }
 
     async function deleteDeduction(id) {
-      if (!confirm('確定刪除此筆扣除紀錄？')) return;
-      try {
-        await _supabase
-          .from('deduction_logs')
-          .delete()
-          .eq('id', id);
+      if (!confirm('確定刪除此筆紀錄？')) return;
+      await _supabase.from('deduction_logs').delete().eq('id', id);
+      await loadDeductionLogs();
+      calculateTotal();
+    }
 
-        await loadDeductionLogs();
-        calculateTotal();
+    // 📸 照片獨立處理機制 (按學生區分)
+    async function loadStudentTablePhoto() {
+      const photoKey = `TABLE_PHOTO_${currentStudentId}`;
+      const { data } = await _supabase
+        .from('behavior_scores')
+        .select('grade')
+        .eq('student_id', currentStudentId)
+        .eq('date', weekDates[0])
+        .eq('item_name', photoKey)
+        .maybeSingle();
+
+      currentTablePhotoUrl = data ? data.grade : null;
+      renderPhotoPreview(currentTablePhotoUrl);
+    }
+
+    async function uploadTablePhoto(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const btnText = document.getElementById('table-photo-btn-text');
+      if (btnText) btnText.innerText = '上傳中...';
+
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `table_${currentStudentId}_${weekDates[0]}_${Date.now()}.${fileExt}`;
+        const filePath = `tables/${fileName}`;
+
+        const { error: uploadErr } = await _supabase.storage
+          .from('receipts')
+          .upload(filePath, file);
+
+        if (uploadErr) throw uploadErr;
+
+        const { data: publicUrlData } = _supabase.storage
+          .from('receipts')
+          .getPublicUrl(filePath);
+
+        const publicUrl = publicUrlData.publicUrl;
+        const photoKey = `TABLE_PHOTO_${currentStudentId}`;
+
+        await _supabase.from('behavior_scores').upsert({
+          student_id: currentStudentId,
+          date: weekDates[0],
+          item_name: photoKey,
+          grade: publicUrl,
+          score: 0
+        }, { onConflict: 'student_id,date,item_name' });
+
+        currentTablePhotoUrl = publicUrl;
+        renderPhotoPreview(publicUrl);
       } catch (err) {
-        alert('❌ 刪除失敗：' + err.message);
+        alert('❌ 照片上傳失敗：' + err.message);
+      } finally {
+        if (btnText) btnText.innerText = '拍照 / 上傳照片';
+        e.target.value = '';
       }
     }
 
-    async function loadTablePhoto() {
-      currentTablePhotoUrl = null;
-      document.getElementById('table-photo-container').classList.add('hidden');
+    function renderPhotoPreview(url) {
+      const previewImg = document.getElementById('table-photo-preview');
+      const photoContainer = document.getElementById('table-photo-container');
+      const ocrBtn = document.getElementById('btn-run-ocr');
 
-      try {
-        const { data, error } = await _supabase
-          .from('behavior_scores')
-          .select('grade')
-          .eq('student_id', currentStudentId)
-          .eq('date', weekDates[0])
-          .eq('item_name', 'TABLE_PHOTO')
-          .maybeSingle();
-
-        if (data && data.grade) {
-          currentTablePhotoUrl = data.grade;
-          document.getElementById('table-photo-preview').src = currentTablePhotoUrl;
-          document.getElementById('table-photo-container').classList.remove('hidden');
-        }
-      } catch (err) {
-        console.error('載入白板照片失敗:', err);
+      if (url) {
+        if (previewImg) previewImg.src = url;
+        if (photoContainer) photoContainer.classList.remove('hidden');
+        if (ocrBtn) ocrBtn.classList.remove('hidden');
+      } else {
+        if (previewImg) previewImg.src = '';
+        if (photoContainer) photoContainer.classList.add('hidden');
+        if (ocrBtn) ocrBtn.classList.add('hidden');
       }
     }
 
-// 1. 照片上傳：依據 currentStudentId 獨立儲存
-async function uploadTablePhoto(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const btnText = document.getElementById('table-photo-btn-text');
-  if (btnText) btnText.innerText = '上傳中...';
-
-  try {
-    const fileExt = file.name.split('.').pop();
-    // 檔名加入 currentStudentId 區分多多與球球
-    const fileName = `table_${currentStudentId}_${weekDates[0]}_${Date.now()}.${fileExt}`;
-    const filePath = `tables/${fileName}`;
-
-    const { error: uploadErr } = await _supabase.storage
-      .from('receipts')
-      .upload(filePath, file);
-
-    if (uploadErr) throw uploadErr;
-
-    const { data: publicUrlData } = _supabase.storage
-      .from('receipts')
-      .getPublicUrl(filePath);
-
-    const publicUrl = publicUrlData.publicUrl;
-
-    // item_name 加入學生 ID：如 TABLE_PHOTO_dodo
-    const photoItemKey = `TABLE_PHOTO_${currentStudentId}`;
-
-    await _supabase
-      .from('behavior_scores')
-      .upsert({
-        student_id: currentStudentId,
-        date: weekDates[0],
-        item_name: photoItemKey,
-        grade: publicUrl,
-        score: 0
-      }, { onConflict: 'student_id,date,item_name' });
-
-    currentTablePhotoUrl = publicUrl;
-    renderPhotoPreview(publicUrl);
-
-    if (btnText) btnText.innerText = '拍照 / 上傳照片';
-    e.target.value = '';
-  } catch (err) {
-    alert('❌ 照片上傳失敗：' + err.message);
-    if (btnText) btnText.innerText = '拍照 / 上傳照片';
-  }
-}
-
-// 2. 渲染照片預覽與 OCR 按鈕
-function renderPhotoPreview(url) {
-  const previewImg = document.getElementById('table-photo-preview');
-  const photoContainer = document.getElementById('table-photo-container');
-  const ocrBtn = document.getElementById('btn-run-ocr');
-
-  if (url) {
-    if (previewImg) previewImg.src = url;
-    if (photoContainer) photoContainer.classList.remove('hidden');
-    if (ocrBtn) ocrBtn.classList.remove('hidden');
-  } else {
-    if (previewImg) previewImg.src = '';
-    if (photoContainer) photoContainer.classList.add('hidden');
-    if (ocrBtn) ocrBtn.classList.add('hidden');
-  }
-}
-
-// 3. 讀取當前學生的白板照片
-async function loadStudentTablePhoto() {
-  const photoItemKey = `TABLE_PHOTO_${currentStudentId}`;
-  const { data } = await _supabase
-    .from('behavior_scores')
-    .select('grade')
-    .eq('student_id', currentStudentId)
-    .eq('date', weekDates[0])
-    .eq('item_name', photoItemKey)
-    .maybeSingle();
-
-  if (data && data.grade) {
-    currentTablePhotoUrl = data.grade;
-    renderPhotoPreview(data.grade);
-  } else {
-    currentTablePhotoUrl = null;
-    renderPhotoPreview(null);
-  }
-  
-  // 更新上傳區顯示姓名
-  const ownerLabel = document.getElementById('photo-owner-name');
-  if (ownerLabel) ownerLabel.innerText = currentStudentId === 'dodo' ? '多多' : '球球';
-}
-
-// 4. 全螢幕照片檢視控制
-function openPhotoModal() {
-  const src = document.getElementById('table-photo-preview').src;
-  if (!src) return;
-  document.getElementById('photo-modal-img').src = src;
-  document.getElementById('photo-modal').classList.remove('hidden');
-}
-
-function closePhotoModal() {
-  document.getElementById('photo-modal').classList.add('hidden');
-}
-
-    async function deleteTablePhoto() {
-      if (!confirm('確定要刪除本週白板照片嗎？')) return;
-
-      try {
-        await _supabase
-          .from('behavior_scores')
-          .delete()
-          .eq('student_id', currentStudentId)
-          .eq('date', weekDates[0])
-          .eq('item_name', 'TABLE_PHOTO');
-
-        currentTablePhotoUrl = null;
-        document.getElementById('table-photo-container').classList.add('hidden');
-      } catch (err) {
-        alert('❌ 刪除照片失敗：' + err.message);
-      }
+    function openPhotoModal() {
+      if (!currentTablePhotoUrl) return;
+      document.getElementById('photo-modal-img').src = currentTablePhotoUrl;
+      document.getElementById('photo-modal').classList.remove('hidden');
     }
 
-    // 🤖 Gemini Vision OCR 自動辨識填表功能
-    async function runOcrRecognition() {
+    function closePhotoModal() {
+      document.getElementById('photo-modal').classList.add('hidden');
+    }
+
+    // 🤖 AI OCR 辨識
+    async function runOCR() {
       const apiKey = localStorage.getItem('GEMINI_API_KEY');
-      if (!apiKey) {
-        alert('⚠️ 請先在頁面上方輸入並儲存您的 Gemini API Key！');
-        return;
-      }
-      if (!currentTablePhotoUrl) {
-        alert('⚠️ 找不到照片網址！');
-        return;
-      }
+      if (!apiKey) return alert('⚠️ 請先設定並儲存 Gemini API Key！');
+      if (!currentTablePhotoUrl) return alert('⚠️ 找不到照片網址！');
 
       const ocrLoading = document.getElementById('ocr-loading');
       const btnOcr = document.getElementById('btn-run-ocr');
@@ -798,7 +599,6 @@ function closePhotoModal() {
       btnOcr.disabled = true;
 
       try {
-        // 將圖片轉成 Base64
         const response = await fetch(currentTablePhotoUrl);
         const blob = await response.blob();
         const base64Data = await new Promise((resolve) => {
@@ -807,63 +607,37 @@ function closePhotoModal() {
           reader.readAsDataURL(blob);
         });
 
-        // 呼叫 Gemini Vision API (Gemini 1.5 Flash)
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-        
         const promptText = `
-你是一個專業的表格文字辨識助手。請分析這張白板行為紀錄照片。
-我們有以下幾項行為項目：
-${ALL_ITEMS.join(', ')}
-
-評估等級只有五種：A, B, C, D, E。
-請將辨識到的結果以 STRICT JSON 格式傳回，陣列中的每個物件格式為：
-{
-  "item": "項目名稱(必須完全符合上面提供的項目列表)",
-  "dayIndex": 0到6的整數 (0代表週一，1代表週二... 6代表週日),
-  "grade": "A" 或 "B" 或 "C" 或 "D" 或 "E"
-}
-只輸出 JSON，不要加入 Markdown 標籤，也不要輸出任何額外文字。
-        `;
-
-        const requestBody = {
-          contents: [{
-            parts: [
-              { text: promptText },
-              { inline_data: { mime_type: "image/jpeg", data: base64Data } }
-            ]
-          }]
-        };
+請辨識這張照片表格，包含項目與評級 (A,B,C,D,E)：
+項目包含：${ALL_ITEMS.join(', ')}
+請傳回 STRICT JSON 陣列：
+[{"item": "項目名稱", "dayIndex": 0到6的整數, "grade": "A~E"}]
+只輸出 JSON 本體，勿加標籤。`;
 
         const res = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: "image/jpeg", data: base64Data } }] }]
+          })
         });
 
         const resData = await res.json();
-        const rawText = resData.candidates[0].content.parts[0].text.trim();
-        const cleanJsonText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const cleanJsonText = resData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
         const recognizedResults = JSON.parse(cleanJsonText);
 
         let updateCount = 0;
         for (const item of recognizedResults) {
           if (ALL_ITEMS.includes(item.item) && item.dayIndex >= 0 && item.dayIndex <= 6 && ['A','B','C','D','E'].includes(item.grade)) {
-            const key = `${item.item}_${item.dayIndex}`;
-            currentWeekScores[key] = item.grade;
-            
-            // 自動儲存至資料庫
-            const dateStr = weekDates[item.dayIndex];
-            const scoreVal = GRADE_MAP[item.grade];
-            await _supabase
-              .from('behavior_scores')
-              .upsert({
-                student_id: currentStudentId,
-                date: dateStr,
-                item_name: item.item,
-                grade: item.grade,
-                score: scoreVal
-              }, { onConflict: 'student_id,date,item_name' });
-
+            currentWeekScores[`${item.item}_${item.dayIndex}`] = item.grade;
+            await _supabase.from('behavior_scores').upsert({
+              student_id: currentStudentId,
+              date: weekDates[item.dayIndex],
+              item_name: item.item,
+              grade: item.grade,
+              score: GRADE_MAP[item.grade]
+            }, { onConflict: 'student_id,date,item_name' });
             updateCount++;
           }
         }
@@ -872,12 +646,9 @@ ${ALL_ITEMS.join(', ')}
         calculateTotal();
         await loadAllTimeScores();
         renderTrendCharts();
-
-        alert(`🎉 OCR 辨識完成！共成功填入 ${updateCount} 筆行為評級，請人工檢查確認是否正確！`);
-
+        alert(`🎉 OCR 辨識成功！共填入 ${updateCount} 筆評級。`);
       } catch (err) {
-        console.error('OCR 辨識錯誤:', err);
-        alert('❌ OCR 辨識失敗，請確認 API Key 是否正確或照片是否清晰！');
+        alert('❌ OCR 辨識失敗，請檢查照片或金鑰！');
       } finally {
         ocrLoading.classList.add('hidden');
         btnOcr.disabled = false;
@@ -885,18 +656,13 @@ ${ALL_ITEMS.join(', ')}
     }
 
     async function loadExtraScores() {
-      try {
-        const { data, error } = await _supabase
-          .from('extra_scores')
-          .select('*')
-          .eq('student_id', currentStudentId)
-          .in('date', weekDates)
-          .order('id', { ascending: true });
+      const { data } = await _supabase
+        .from('extra_scores')
+        .select('*')
+        .eq('student_id', currentStudentId)
+        .in('date', weekDates);
 
-        renderExtraScores(data || []);
-      } catch (err) {
-        console.error('載入額外加減分失敗:', err);
-      }
+      renderExtraScores(data || []);
     }
 
     function renderExtraScores(list) {
@@ -905,23 +671,22 @@ ${ALL_ITEMS.join(', ')}
       window.weekExtraTotal = 0;
 
       if (list.length === 0) {
-        ul.innerHTML = '<li class="py-2 text-slate-400 text-center font-normal">本週尚無額外加減分紀錄</li>';
+        ul.innerHTML = '<li class="py-2 text-slate-400 text-center font-normal">本週尚無額外紀錄</li>';
         return;
       }
 
       list.forEach(item => {
         window.weekExtraTotal += (item.points || 0);
         const li = document.createElement('li');
-        li.className = 'py-2.5 flex justify-between items-center';
-        const isPositive = item.points >= 0;
+        li.className = 'py-2 flex justify-between items-center';
         li.innerHTML = `
           <div>
             <span class="font-bold text-slate-700">${item.note}</span>
             <span class="text-xs text-slate-400 ml-2">(${item.date})</span>
           </div>
           <div class="flex items-center gap-3">
-            <span class="font-bold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}">
-              ${isPositive ? '+' : ''}${item.points} 點
+            <span class="font-bold ${item.points >= 0 ? 'text-emerald-600' : 'text-rose-600'}">
+              ${item.points >= 0 ? '+' : ''}${item.points} 點
             </span>
             <button onclick="deleteExtraScore(${item.id})" class="text-slate-400 hover:text-rose-500 font-bold text-xs">✕</button>
           </div>
@@ -935,46 +700,26 @@ ${ALL_ITEMS.join(', ')}
       const note = document.getElementById('extra-note').value.trim();
       const pointsVal = document.getElementById('extra-points').value;
 
-      if (!date || !note || !pointsVal) {
-        alert('請完整填寫日期、事項說明與分數！');
-        return;
-      }
+      if (!date || !note || !pointsVal) return alert('請填寫完整額外加減分資訊！');
 
-      const points = parseInt(pointsVal, 10);
+      await _supabase.from('extra_scores').insert({
+        student_id: currentStudentId,
+        date: date,
+        note: note,
+        points: parseInt(pointsVal, 10)
+      });
 
-      try {
-        await _supabase
-          .from('extra_scores')
-          .insert({
-            student_id: currentStudentId,
-            date: date,
-            note: note,
-            points: points
-          });
-
-        document.getElementById('extra-note').value = '';
-        document.getElementById('extra-points').value = '';
-
-        await loadExtraScores();
-        calculateTotal();
-      } catch (err) {
-        alert('❌ 新增失敗：' + err.message);
-      }
+      document.getElementById('extra-note').value = '';
+      document.getElementById('extra-points').value = '';
+      await loadExtraScores();
+      calculateTotal();
     }
 
     async function deleteExtraScore(id) {
-      if (!confirm('確定刪除此筆額外紀錄？')) return;
-      try {
-        await _supabase
-          .from('extra_scores')
-          .delete()
-          .eq('id', id);
-
-        await loadExtraScores();
-        calculateTotal();
-      } catch (err) {
-        alert('❌ 刪除失敗：' + err.message);
-      }
+      if (!confirm('確定刪除？')) return;
+      await _supabase.from('extra_scores').delete().eq('id', id);
+      await loadExtraScores();
+      calculateTotal();
     }
 
     function renderMatrixTable() {
@@ -1003,8 +748,7 @@ ${ALL_ITEMS.join(', ')}
             if (!isAppliable) {
               tds += `<td class="p-2 border border-slate-200 bg-slate-100 text-slate-300 font-bold">-</td>`;
             } else {
-              const key = `${item}_${dayIdx}`;
-              const currentGrade = currentWeekScores[key] || '-';
+              const currentGrade = currentWeekScores[`${item}_${dayIdx}`] || '-';
               
               let gradeBg = 'bg-white text-slate-600 border-slate-200';
               if (currentGrade === 'A') gradeBg = 'bg-emerald-500 text-white font-bold border-emerald-600';
@@ -1035,88 +779,49 @@ ${ALL_ITEMS.join(', ')}
     async function cycleGrade(item, dayIdx) {
       const key = `${item}_${dayIdx}`;
       const currentGrade = currentWeekScores[key] || '-';
-      const nextIdx = (GRADE_SEQUENCE.indexOf(currentGrade) + 1) % GRADE_SEQUENCE.length;
-      const nextGrade = GRADE_SEQUENCE[nextIdx];
+      const nextGrade = GRADE_SEQUENCE[(GRADE_SEQUENCE.indexOf(currentGrade) + 1) % GRADE_SEQUENCE.length];
 
       currentWeekScores[key] = nextGrade;
       renderMatrixTable();
       calculateTotal();
 
-      const dateStr = weekDates[dayIdx];
-      const scoreVal = GRADE_MAP[nextGrade];
+      await _supabase.from('behavior_scores').upsert({
+        student_id: currentStudentId,
+        date: weekDates[dayIdx],
+        item_name: item,
+        grade: nextGrade,
+        score: GRADE_MAP[nextGrade]
+      }, { onConflict: 'student_id,date,item_name' });
 
-      try {
-        await _supabase
-          .from('behavior_scores')
-          .upsert({
-            student_id: currentStudentId,
-            date: dateStr,
-            item_name: item,
-            grade: nextGrade,
-            score: scoreVal
-          }, { onConflict: 'student_id,date,item_name' });
-
-        await loadAllTimeScores();
-        renderTrendCharts();
-      } catch (err) {
-        console.error('更新分數失敗:', err);
-      }
+      await loadAllTimeScores();
+      renderTrendCharts();
     }
 
     function calculateTotal() {
       let weekBaseTotal = 0;
       Object.entries(currentWeekScores).forEach(([key, grade]) => {
-        if (!key.includes('TABLE_PHOTO')) {
+        if (!key.startsWith('TABLE_PHOTO')) {
           weekBaseTotal += GRADE_MAP[grade] || 0;
         }
       });
       const weekFinalPoints = weekBaseTotal + (window.weekExtraTotal || 0);
-      const weekFinalMoney = Math.max(0, weekFinalPoints * 5);
 
       document.getElementById('week-points').innerText = weekFinalPoints;
-      document.getElementById('week-money').innerText = weekFinalMoney;
+      document.getElementById('week-money').innerText = Math.max(0, weekFinalPoints * 5);
 
-      let totalEarnedPoints = 0;
-      if (manualBasePoints !== null) {
-        totalEarnedPoints = manualBasePoints;
-      } else {
-        let allBaseTotal = 0;
-        allTimeScores.forEach(s => {
-          if (s.item_name !== 'TABLE_PHOTO') {
-            allBaseTotal += s.score || 0;
-          }
-        });
-        totalEarnedPoints = allBaseTotal + (window.allExtraTotal || 0);
-      }
-
-      let totalDeductedPoints = 0;
-      deductionLogs.forEach(log => {
-        totalDeductedPoints += log.deducted_points || 0;
-      });
+      let totalEarnedPoints = manualBasePoints !== null ? manualBasePoints : allTimeScores.reduce((acc, s) => acc + (s.item_name.startsWith('TABLE_PHOTO') ? 0 : s.score || 0), 0);
+      let totalDeductedPoints = deductionLogs.reduce((acc, log) => acc + (log.deducted_points || 0), 0);
 
       const totalRemainingPoints = totalEarnedPoints - totalDeductedPoints;
-      const totalRemainingMoney = Math.max(0, totalRemainingPoints * 5);
-
       document.getElementById('total-points').innerText = totalRemainingPoints;
-      document.getElementById('total-money').innerText = totalRemainingMoney;
+      document.getElementById('total-money').innerText = Math.max(0, totalRemainingPoints * 5);
     }
 
     function toggleOverrideInput() {
-      const box = document.getElementById('override-box');
-      box.classList.toggle('hidden');
+      document.getElementById('override-box').classList.toggle('hidden');
     }
 
-    function openTableImageModal() {
-      if (!currentTablePhotoUrl) return;
-      document.getElementById('modal-img').src = currentTablePhotoUrl;
-      document.getElementById('image-modal').classList.remove('hidden');
-    }
-
-    function closeImageModal() {
-      document.getElementById('image-modal').classList.add('hidden');
-    }
-
-    // 📊 逐週數據報表與趨勢圖表繪製邏輯
+    // 📈 圖表渲染
     function renderItemSelectorOptions() {
       const select = document.getElementById('item-chart-selector');
       select.innerHTML = '';
@@ -1135,27 +840,23 @@ ${ALL_ITEMS.join(', ')}
 
     function renderTotalTrendChart() {
       const ctx = document.getElementById('chart-total-score').getContext('2d');
-      
-      // 依週次整理過去 6 週資料
       const labels = [];
       const dataPoints = [];
 
       for (let i = -5; i <= 0; i++) {
         const dates = getWeekDates(currentWeekOffset + i);
-        const weekLabel = `${dates[0].slice(5)} ~ ${dates[6].slice(5)}`;
-        labels.push(weekLabel);
+        labels.push(`${dates[0].slice(5)} ~ ${dates[6].slice(5)}`);
 
-        let weekScoreSum = 0;
+        let sum = 0;
         allTimeScores.forEach(s => {
-          if (s.item_name !== 'TABLE_PHOTO' && dates.includes(s.date)) {
-            weekScoreSum += (s.score || 0);
+          if (!s.item_name.startsWith('TABLE_PHOTO') && dates.includes(s.date)) {
+            sum += (s.score || 0);
           }
         });
-        dataPoints.push(weekScoreSum);
+        dataPoints.push(sum);
       }
 
       if (chartTotalInstance) chartTotalInstance.destroy();
-
       const themeColor = currentStudentId === 1 ? '#0284c7' : '#e11d48';
 
       chartTotalInstance = new Chart(ctx, {
@@ -1173,38 +874,30 @@ ${ALL_ITEMS.join(', ')}
             pointRadius: 5
           }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true } }
-        }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
       });
     }
 
     function renderItemTrendChart() {
       const selectedItem = document.getElementById('item-chart-selector').value || ALL_ITEMS[0];
       const ctx = document.getElementById('chart-item-score').getContext('2d');
-
       const labels = [];
       const dataPoints = [];
 
       for (let i = -5; i <= 0; i++) {
         const dates = getWeekDates(currentWeekOffset + i);
-        const weekLabel = `${dates[0].slice(5)} ~ ${dates[6].slice(5)}`;
-        labels.push(weekLabel);
+        labels.push(`${dates[0].slice(5)} ~ ${dates[6].slice(5)}`);
 
-        let itemScoreSum = 0;
+        let sum = 0;
         allTimeScores.forEach(s => {
           if (s.item_name === selectedItem && dates.includes(s.date)) {
-            itemScoreSum += (s.score || 0);
+            sum += (s.score || 0);
           }
         });
-        dataPoints.push(itemScoreSum);
+        dataPoints.push(sum);
       }
 
       if (chartItemInstance) chartItemInstance.destroy();
-
       const themeColor = currentStudentId === 1 ? '#0d9488' : '#d97706';
 
       chartItemInstance = new Chart(ctx, {
@@ -1212,23 +905,17 @@ ${ALL_ITEMS.join(', ')}
         data: {
           labels: labels,
           datasets: [{
-            label: `${selectedItem} 當週累積得分`,
+            label: `${selectedItem} 得分`,
             data: dataPoints,
             backgroundColor: themeColor,
             borderRadius: 6
           }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true } }
-        }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
       });
     }
 
-
-    // 初始化載入
+    // 啟動流程
     updateWeekDisplay();
     applyTheme(1);
     loadData();

@@ -10,7 +10,6 @@
 </head>
 <body id="app-body" class="bg-slate-100 text-slate-800 font-sans pb-12 transition-colors duration-300">
 
-  <!-- 頂部頁首與小孩切換 -->
   <header id="app-header" class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50 transition-colors duration-300">
     <div class="max-w-4xl mx-auto flex justify-between items-center">
       <h1 class="text-xl font-bold flex items-center gap-2">
@@ -25,7 +24,6 @@
 
   <main class="max-w-4xl mx-auto p-4 space-y-6">
 
-    <!-- 🔑 Gemini API 設定 -->
     <div class="bg-indigo-900 text-white rounded-2xl p-4 shadow-sm flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center gap-2 text-sm font-bold">
         🔑 Gemini API 金鑰設定 <span class="text-xs text-indigo-200 font-normal">(供白板拍照 OCR 自動辨識填表使用)</span>
@@ -36,7 +34,6 @@
       </div>
     </div>
 
-    <!-- 📅 週次選擇切換 -->
     <div class="bg-slate-800 text-white rounded-2xl p-4 shadow-sm flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center gap-2">
         <button onclick="changeWeek(-1)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-sm font-bold transition">‹ 上一週</button>
@@ -48,7 +45,6 @@
       </div>
     </div>
 
-    <!-- 💰 點數與金額統計卡片 -->
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="space-y-2 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6">
         <div class="text-sm text-slate-500 font-medium">當前小孩：<span id="current-student-name" class="font-bold text-slate-800">多多</span></div>
@@ -59,20 +55,20 @@
       <div class="space-y-2">
         <div class="flex items-center justify-between">
           <div class="text-sm text-slate-500 font-medium">歷史累積金額與總分</div>
-          <button onclick="toggleOverrideInput()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 px-2 py-1 rounded-lg">⚙️ 修改總分/扣點扣款</button>
+          <button onclick="toggleOverrideInput()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 px-2 py-1 rounded-lg">⚙️ 設定基礎分數/扣點扣款</button>
         </div>
         <div class="text-2xl font-black text-slate-800">累積剩餘總分：<span id="total-points" class="text-emerald-600">0</span> 點</div>
         <div class="text-2xl font-black text-amber-600">總剩餘可領金額：$ <span id="total-money">0</span></div>
 
-        <!-- ⚙️ 修改與扣除展開選單 -->
         <div id="override-box" class="hidden mt-3 p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-4 text-xs">
           <div class="p-2 bg-white rounded-lg border border-amber-200 space-y-2">
-            <div class="font-bold text-amber-900">✏️ 修改原始累積點數基準：</div>
+            <div class="font-bold text-amber-900">✏️ 設定基礎分數基準（起步點數）：</div>
             <div class="flex items-center gap-2">
-              <input type="number" id="manual-base-input" placeholder="輸入新原始總點數" class="w-32 border border-slate-300 rounded px-2 py-1 text-sm">
-              <button id="btn-save-base" onclick="saveManualBasePoints()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-2 py-1 rounded">更新總點數</button>
-              <button onclick="resetManualBasePoints()" class="bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold px-2 py-1 rounded">恢復自動計算</button>
+              <input type="number" id="manual-base-input" placeholder="輸入基礎點數(如0)" class="w-32 border border-slate-300 rounded px-2 py-1 text-sm">
+              <button id="btn-save-base" onclick="saveManualBasePoints()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-2 py-1 rounded">儲存基礎分數</button>
+              <button onclick="resetManualBasePoints()" class="bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold px-2 py-1 rounded">歸零/重置</button>
             </div>
+            <div class="text-[11px] text-slate-500">※ 總分數計算公式：基礎分數 + 歷史矩陣得分 + 歷史額外加減分 - 扣除紀錄</div>
           </div>
 
           <div class="p-2 bg-white rounded-lg border border-amber-200 space-y-2">
@@ -94,13 +90,11 @@
       </div>
     </div>
 
-    <!-- 📋 行為紀錄表與白板上傳區 -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
       <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
         📋 行為紀錄表
       </h2>
 
-      <!-- 📸 本週白板照片上傳 -->
       <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
@@ -135,7 +129,6 @@
         ⏳ 正在分析影像並辨識行為項目與評級中，請稍候...
       </div>
 
-      <!-- 📊 行為矩陣表格 -->
       <div class="overflow-x-auto relative">
         <table class="w-full text-center border-collapse min-w-[650px]">
           <thead>
@@ -155,7 +148,6 @@
       </div>
     </div>
 
-    <!-- ✨ 額外加減分 -->
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
       <h2 class="font-bold text-lg text-slate-700">✨ 額外加減分登記事項</h2>
       <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
@@ -167,7 +159,6 @@
       <ul id="extra-list" class="divide-y divide-slate-100 text-sm"></ul>
     </div>
 
-    <!-- 📈 逐週數據統計趨勢圖 -->
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
       <h2 class="font-bold text-lg text-slate-700 flex items-center gap-2">
         📈 逐週數據統計趨勢
@@ -193,7 +184,6 @@
 
   </main>
 
-  <!-- 🔍 全螢幕照片檢視 Modal -->
   <div id="photo-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4" onclick="closePhotoModal()">
     <div class="relative max-w-4xl max-h-full">
       <img id="photo-modal-img" src="" class="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
@@ -221,8 +211,9 @@
     let currentWeekOffset = 0;
     let weekDates = [];
     let allTimeScores = [];
+    let allExtraScores = [];
 
-    let manualBasePoints = null;
+    let manualBasePoints = 0;
     let deductionLogs = [];
     let currentTablePhotoUrl = null;
 
@@ -414,31 +405,30 @@
         .eq('student_id', currentStudentId)
         .maybeSingle();
 
-      if (data && data.base_points !== null) {
+      if (data && data.base_points !== null && data.base_points !== undefined) {
         manualBasePoints = data.base_points;
         document.getElementById('manual-base-input').value = manualBasePoints;
       } else {
-        manualBasePoints = null;
-        document.getElementById('manual-base-input').value = '';
+        manualBasePoints = 0;
+        document.getElementById('manual-base-input').value = 0;
       }
     }
 
     async function saveManualBasePoints() {
       const val = document.getElementById('manual-base-input').value;
-      if (val === '') return;
-      const newBase = parseInt(val, 10);
+      const newBase = val === '' ? 0 : parseInt(val, 10);
       await _supabase.from('student_base_points').upsert({ student_id: currentStudentId, base_points: newBase });
       manualBasePoints = newBase;
       calculateTotal();
-      alert('✅ 原始點數已儲存！');
+      alert('✅ 基礎分數已成功更新！');
     }
 
     async function resetManualBasePoints() {
-      await _supabase.from('student_base_points').delete().eq('student_id', currentStudentId);
-      manualBasePoints = null;
-      document.getElementById('manual-base-input').value = '';
+      await _supabase.from('student_base_points').upsert({ student_id: currentStudentId, base_points: 0 });
+      manualBasePoints = 0;
+      document.getElementById('manual-base-input').value = 0;
       calculateTotal();
-      alert('✅ 已恢復自動計算！');
+      alert('✅ 基礎分數已歸零！');
     }
 
     async function loadDeductionLogs() {
@@ -461,11 +451,11 @@
         li.innerHTML = `
           <div>
             <span class="font-bold text-slate-700">${log.note || '未命名'}</span>
-            <span class="text-[10px] text-slate-400 ml-1">(${log.created_at.split('T')[0]})</span>
+            <span class="text-[10px] text-slate-400 ml-1">(${log.created_at ? log.created_at.split('T')[0] : ''})</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="font-bold text-rose-600">-${log.deducted_points} 點 ($${log.deducted_money || log.deducted_points * 5})</span>
-            <button onclick="deleteDeduction(${log.id})" class="text-slate-400 hover:text-rose-500 text-xs">✕</button>
+            <button onclick="deleteDeduction(${log.id})" class="text-slate-400 hover:text-rose-500 text-xs font-bold">✕</button>
           </div>
         `;
         ul.appendChild(li);
@@ -480,7 +470,7 @@
       let deductedPoints = moneyVal ? Math.ceil(parseFloat(moneyVal) / 5) : parseInt(pointsVal, 10);
       let deductedMoney = moneyVal ? parseFloat(moneyVal) : deductedPoints * 5;
 
-      if (!deductedPoints) return alert('請輸入金額或點數！');
+      if (!deductedPoints || isNaN(deductedPoints)) return alert('請輸入金額或點數！');
 
       await _supabase.from('deduction_logs').insert({
         student_id: currentStudentId,
@@ -503,7 +493,7 @@
       calculateTotal();
     }
 
-    // 📸 照片獨立處理機制 (按學生區分)
+    // 📸 照片獨立處理機制
     async function loadStudentTablePhoto() {
       const photoKey = `TABLE_PHOTO_${currentStudentId}`;
       const { data } = await _supabase
@@ -643,8 +633,8 @@
         }
 
         renderMatrixTable();
-        calculateTotal();
         await loadAllTimeScores();
+        calculateTotal();
         renderTrendCharts();
         alert(`🎉 OCR 辨識成功！共填入 ${updateCount} 筆評級。`);
       } catch (err) {
@@ -655,28 +645,31 @@
       }
     }
 
+    // 載入所有額外加減分（包含歷史與當週）
     async function loadExtraScores() {
       const { data } = await _supabase
         .from('extra_scores')
         .select('*')
         .eq('student_id', currentStudentId)
-        .in('date', weekDates);
+        .order('date', { ascending: false });
 
-      renderExtraScores(data || []);
+      allExtraScores = data || [];
+      renderExtraScores();
     }
 
-    function renderExtraScores(list) {
+    function renderExtraScores() {
       const ul = document.getElementById('extra-list');
       ul.innerHTML = '';
-      window.weekExtraTotal = 0;
+      
+      // 篩選出當週的額外加減分展示於列表
+      const currentWeekExtraList = allExtraScores.filter(item => weekDates.includes(item.date));
 
-      if (list.length === 0) {
+      if (currentWeekExtraList.length === 0) {
         ul.innerHTML = '<li class="py-2 text-slate-400 text-center font-normal">本週尚無額外紀錄</li>';
         return;
       }
 
-      list.forEach(item => {
-        window.weekExtraTotal += (item.points || 0);
+      currentWeekExtraList.forEach(item => {
         const li = document.createElement('li');
         li.className = 'py-2 flex justify-between items-center';
         li.innerHTML = `
@@ -700,7 +693,9 @@
       const note = document.getElementById('extra-note').value.trim();
       const pointsVal = document.getElementById('extra-points').value;
 
-      if (!date || !note || !pointsVal) return alert('請填寫完整額外加減分資訊！');
+      if (!date || !note || pointsVal === '' || isNaN(parseInt(pointsVal, 10))) {
+        return alert('請填寫完整的額外加減分資訊（日期、事項、分數）！');
+      }
 
       await _supabase.from('extra_scores').insert({
         student_id: currentStudentId,
@@ -716,7 +711,7 @@
     }
 
     async function deleteExtraScore(id) {
-      if (!confirm('確定刪除？')) return;
+      if (!confirm('確定刪除此筆紀錄？')) return;
       await _supabase.from('extra_scores').delete().eq('id', id);
       await loadExtraScores();
       calculateTotal();
@@ -783,7 +778,6 @@
 
       currentWeekScores[key] = nextGrade;
       renderMatrixTable();
-      calculateTotal();
 
       await _supabase.from('behavior_scores').upsert({
         student_id: currentStudentId,
@@ -794,25 +788,44 @@
       }, { onConflict: 'student_id,date,item_name' });
 
       await loadAllTimeScores();
+      calculateTotal();
       renderTrendCharts();
     }
 
     function calculateTotal() {
+      // 1. 當週矩陣得分
       let weekBaseTotal = 0;
       Object.entries(currentWeekScores).forEach(([key, grade]) => {
         if (!key.startsWith('TABLE_PHOTO')) {
           weekBaseTotal += GRADE_MAP[grade] || 0;
         }
       });
-      const weekFinalPoints = weekBaseTotal + (window.weekExtraTotal || 0);
 
+      // 2. 當週額外加減分
+      const weekExtraTotal = allExtraScores
+        .filter(s => weekDates.includes(s.date))
+        .reduce((acc, s) => acc + (s.points || 0), 0);
+
+      const weekFinalPoints = weekBaseTotal + weekExtraTotal;
       document.getElementById('week-points').innerText = weekFinalPoints;
       document.getElementById('week-money').innerText = Math.max(0, weekFinalPoints * 5);
 
-      let totalEarnedPoints = manualBasePoints !== null ? manualBasePoints : allTimeScores.reduce((acc, s) => acc + (s.item_name.startsWith('TABLE_PHOTO') ? 0 : s.score || 0), 0);
-      let totalDeductedPoints = deductionLogs.reduce((acc, log) => acc + (log.deducted_points || 0), 0);
+      // 3. 歷史所有矩陣得分總和
+      const allTimeMatrixPoints = allTimeScores.reduce((acc, s) => {
+        return acc + (s.item_name.startsWith('TABLE_PHOTO') ? 0 : (s.score || 0));
+      }, 0);
 
+      // 4. 歷史所有額外加減分總和
+      const allTimeExtraPoints = allExtraScores.reduce((acc, s) => acc + (s.points || 0), 0);
+
+      // 5. 歷史所有扣除點數總和
+      const totalDeductedPoints = deductionLogs.reduce((acc, log) => acc + (log.deducted_points || 0), 0);
+
+      // 6. 累積總剩餘點數計算 = 基礎分數 + 歷史矩陣得分 + 歷史額外加減分 - 扣除點數
+      const basePoints = manualBasePoints || 0;
+      const totalEarnedPoints = basePoints + allTimeMatrixPoints + allTimeExtraPoints;
       const totalRemainingPoints = totalEarnedPoints - totalDeductedPoints;
+
       document.getElementById('total-points').innerText = totalRemainingPoints;
       document.getElementById('total-money').innerText = Math.max(0, totalRemainingPoints * 5);
     }
@@ -851,6 +864,12 @@
         allTimeScores.forEach(s => {
           if (!s.item_name.startsWith('TABLE_PHOTO') && dates.includes(s.date)) {
             sum += (s.score || 0);
+          }
+        });
+        // 加入該週的額外加減分
+        allExtraScores.forEach(s => {
+          if (dates.includes(s.date)) {
+            sum += (s.points || 0);
           }
         });
         dataPoints.push(sum);

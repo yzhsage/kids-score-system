@@ -48,7 +48,7 @@
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6">
       
       <div class="space-y-2 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6">
-        <div class="text-sm text-slate-500 font-medium">當前學生：<span id="current-student-name" class="font-bold text-slate-800">多多</span></div>
+        <div class="text-sm text-slate-500 font-medium">當前小孩：<span id="current-student-name" class="font-bold text-slate-800">多多</span></div>
         <div class="text-xl font-bold text-slate-700">當週得分：<span id="week-points" class="theme-text-primary">0</span> 點</div>
         <div class="text-sm text-slate-500">當週預計可領：<span class="font-bold text-amber-600">$ <span id="week-money">0</span></span></div>
       </div>
@@ -599,50 +599,51 @@
       }
     }
 
-    async function uploadTablePhoto(e) {
-      const file = e.target.files[0];
-      if (!file) return;
+async function uploadTablePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
-      const btnText = document.getElementById('table-photo-btn-text');
-      btnText.innerText = '上傳中...';
+  const btnText = document.getElementById('table-photo-btn-text');
+  btnText.innerText = '上傳中...';
 
-      try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `table_${currentStudentId}_${weekDates[0]}_${Date.now()}.${fileExt}`;
-        const filePath = `tables/${fileName}`;
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `table_${currentStudentId}_${weekDates[0]}_${Date.now()}.${fileExt}`;
+    const filePath = `tables/${fileName}`;
 
-        const { error: uploadErr } = await _supabase.storage
-          .from('photos')
-          .upload(filePath, file);
+    const { error: uploadErr } = await _supabase.storage
+      .from('receipts')
+      .upload(filePath, file);
 
-        if (uploadErr) throw uploadErr;
+    if (uploadErr) throw uploadErr;
 
-        const { data: publicUrlData } = _supabase.storage
-          .from('photos')
-          .getPublicUrl(filePath);
+    const { data: publicUrlData } = _supabase.storage
+      .from('receipts')
+      .getPublicUrl(filePath);
 
-        const publicUrl = publicUrlData.publicUrl;
+    const publicUrl = publicUrlData.publicUrl;
 
-        await _supabase
-          .from('behavior_scores')
-          .upsert({
-            student_id: currentStudentId,
-            date: weekDates[0],
-            item_name: 'TABLE_PHOTO',
-            grade: publicUrl,
-            score: 0
-          }, { onConflict: 'student_id,date,item_name' });
+    await _supabase
+      .from('behavior_scores')
+      .upsert({
+        student_id: currentStudentId,
+        date: weekDates[0],
+        item_name: 'TABLE_PHOTO',
+        grade: publicUrl,
+        score: 0
+      }, { onConflict: 'student_id,date,item_name' });
 
-        currentTablePhotoUrl = publicUrl;
-        document.getElementById('table-photo-preview').src = publicUrl;
-        document.getElementById('table-photo-container').classList.remove('hidden');
-        btnText.innerText = '拍照 / 上傳本週表格照片';
-        e.target.value = '';
-      } catch (err) {
-        alert('❌ 照片上傳失敗：' + err.message);
-        btnText.innerText = '拍照 / 上傳本週表格照片';
-      }
-    }
+    currentTablePhotoUrl = publicUrl;
+    document.getElementById('table-photo-preview').src = publicUrl;
+    document.getElementById('table-photo-container').classList.remove('hidden');
+    btnText.innerText = '拍照 / 上傳本週表格照片';
+    e.target.value = '';
+  } catch (err) {
+    alert('❌ 照片上傳失敗：' + err.message);
+    btnText.innerText = '拍照 / 上傳本週表格照片';
+  }
+}
+
 
     async function deleteTablePhoto() {
       if (!confirm('確定要刪除本週白板照片嗎？')) return;

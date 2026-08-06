@@ -375,7 +375,7 @@
     async function loadCurrentWeekScores() {
       currentWeekScores = {};
       const { data } = await _supabase
-        .from('behavior_scores')
+        .from('daily_scores')
         .select('*')
         .eq('student_id', currentStudentId)
         .in('date', weekDates);
@@ -392,7 +392,7 @@
 
     async function loadAllTimeScores() {
       const { data } = await _supabase
-        .from('behavior_scores')
+        .from('daily_scores')
         .select('*')
         .eq('student_id', currentStudentId);
       allTimeScores = data || [];
@@ -431,15 +431,21 @@
       alert('✅ 基礎分數已歸零！');
     }
 
-    async function loadDeductionLogs() {
-      const { data } = await _supabase
-        .from('deduction_logs')
-        .select('*')
-        .eq('student_id', currentStudentId)
-        .order('created_at', { ascending: false });
+async function loadDeductionLogs() {
+      try {
+        const { data, error } = await _supabase
+          .from('deduction_logs')
+          .select('*')
+          .eq('student_id', currentStudentId)
+          .order('id', { ascending: false }); // 改用 id 排序最保險
 
-      deductionLogs = data || [];
-      renderDeductionLogs();
+        if (error) throw error;
+        deductionLogs = data || [];
+        renderDeductionLogs();
+      } catch (err) {
+        console.error('讀取扣除紀錄失敗:', err);
+        alert('❌ 讀取扣除紀錄失敗：' + err.message);
+      }
     }
 
     function renderDeductionLogs() {
@@ -448,10 +454,10 @@
       deductionLogs.forEach(log => {
         const li = document.createElement('li');
         li.className = 'py-1 flex justify-between items-center';
+        // 移除對 created_at 的依賴，避免欄位不存在時報錯
         li.innerHTML = `
           <div>
             <span class="font-bold text-slate-700">${log.note || '未命名'}</span>
-            <span class="text-[10px] text-slate-400 ml-1">(${log.created_at ? log.created_at.split('T')[0] : ''})</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="font-bold text-rose-600">-${log.deducted_points} 點 ($${log.deducted_money || log.deducted_points * 5})</span>
@@ -463,41 +469,60 @@
     }
 
     async function addDeduction() {
-      const note = document.getElementById('deduct-note-input').value.trim();
-      const moneyVal = document.getElementById('deduct-money-input').value;
-      const pointsVal = document.getElementById('deduct-points-input').value;
+      try {
+        const note = document.getElementById('deduct-note-input').value.trim();
+        const moneyVal = document.getElementById('deduct-money-input').value;
+        const pointsVal = document.getElementById('deduct-points-input').value;
 
-      let deductedPoints = moneyVal ? Math.ceil(parseFloat(moneyVal) / 5) : parseInt(pointsVal, 10);
-      let deductedMoney = moneyVal ? parseFloat(moneyVal) : deductedPoints * 5;
+        let deductedPoints = moneyVal ? Math.ceil(parseFloat(moneyVal) / 5) : parseInt(pointsVal, 10);
+        let deductedMoney = moneyVal ? parseFloat(moneyVal) : deductedPoints * 5;
 
-      if (!deductedPoints || isNaN(deductedPoints)) return alert('請輸入金額或點數！');
+        if (!deductedPoints || isNaN(deductedPoints)) {
+          alert('⚠️ 請輸入有效的金額或點數！');
+          return;
+        }
 
-      await _supabase.from('deduction_logs').insert({
-        student_id: currentStudentId,
-        note: note || '扣除項',
-        deducted_points: deductedPoints,
-        deducted_money: deductedMoney
-      });
+        const { error } = await _supabase.from('deduction_logs').insert({
+          student_id: currentStudentId,
+          note: note || '扣除項',
+          deducted_points: deductedPoints,
+          deducted_money: deductedMoney
+        });
 
-      document.getElementById('deduct-note-input').value = '';
-      document.getElementById('deduct-money-input').value = '';
-      document.getElementById('deduct-points-input').value = '';
-      await loadDeductionLogs();
-      calculateTotal();
+        if (error) throw error;
+
+        // 成功後清空輸入框
+        document.getElementById('deduct-note-input').value = '';
+        document.getElementById('deduct-money-input').value = '';
+        document.getElementById('deduct-points-input').value = '';
+        
+        await loadDeductionLogs();
+        calculateTotal();
+        alert('✅ 扣除紀錄已新增！');
+      } catch (err) {
+        console.error('新增扣除紀錄失敗:', err);
+        alert('❌ 新增扣除紀錄失敗：' + (err.message || '請檢查資料表欄位是否正確'));
+      }
     }
 
     async function deleteDeduction(id) {
       if (!confirm('確定刪除此筆紀錄？')) return;
-      await _supabase.from('deduction_logs').delete().eq('id', id);
-      await loadDeductionLogs();
-      calculateTotal();
+      try {
+        const { error } = await _supabase.from('deduction_logs').delete().eq('id', id);
+        if (error) throw error;
+        await loadDeductionLogs();
+        calculateTotal();
+      } catch (err) {
+        console.error('刪除紀錄失敗:', err);
+        alert('❌ 刪除紀錄失敗：' + err.message);
+      }
     }
 
     // 📸 照片獨立處理機制
     async function loadStudentTablePhoto() {
       const photoKey = `TABLE_PHOTO_${currentStudentId}`;
       const { data } = await _supabase
-        .from('behavior_scores')
+        .from('daily_scores')
         .select('grade')
         .eq('student_id', currentStudentId)
         .eq('date', weekDates[0])
@@ -533,7 +558,7 @@
         const publicUrl = publicUrlData.publicUrl;
         const photoKey = `TABLE_PHOTO_${currentStudentId}`;
 
-        await _supabase.from('behavior_scores').upsert({
+        await _supabase.from('daily_scores').upsert({
           student_id: currentStudentId,
           date: weekDates[0],
           item_name: photoKey,
@@ -621,7 +646,7 @@
         for (const item of recognizedResults) {
           if (ALL_ITEMS.includes(item.item) && item.dayIndex >= 0 && item.dayIndex <= 6 && ['A','B','C','D','E'].includes(item.grade)) {
             currentWeekScores[`${item.item}_${item.dayIndex}`] = item.grade;
-            await _supabase.from('behavior_scores').upsert({
+            await _supabase.from('daily_scores').upsert({
               student_id: currentStudentId,
               date: weekDates[item.dayIndex],
               item_name: item.item,
@@ -779,7 +804,7 @@
       currentWeekScores[key] = nextGrade;
       renderMatrixTable();
 
-      await _supabase.from('behavior_scores').upsert({
+      await _supabase.from('daily_scores').upsert({
         student_id: currentStudentId,
         date: weekDates[dayIdx],
         item_name: item,

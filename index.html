@@ -365,11 +365,8 @@
       renderMatrixTable();
       calculateTotal();
 
-      await _supabase.from('weekly_day_types').upsert({
-        student_id: currentStudentId,
-        start_date: weekDates[0],
-        day_types: dayTypes
-      });
+      await _supabase.from('weekly_day_types').delete().match({ student_id: currentStudentId, start_date: weekDates[0] });
+      await _supabase.from('weekly_day_types').insert({ student_id: currentStudentId, start_date: weekDates[0], day_types: dayTypes });
     }
 
     async function loadCurrentWeekScores() {
@@ -646,13 +643,8 @@ async function loadDeductionLogs() {
         for (const item of recognizedResults) {
           if (ALL_ITEMS.includes(item.item) && item.dayIndex >= 0 && item.dayIndex <= 6 && ['A','B','C','D','E'].includes(item.grade)) {
             currentWeekScores[`${item.item}_${item.dayIndex}`] = item.grade;
-            await _supabase.from('daily_scores').upsert({
-              student_id: currentStudentId,
-              date: weekDates[item.dayIndex],
-              item_name: item.item,
-              grade: item.grade,
-              score: GRADE_MAP[item.grade]
-            }, { onConflict: 'student_id,date,item_name' });
+        await _supabase.from('daily_scores').delete().match({ student_id: currentStudentId, date: targetDate, item_name: item });
+        await _supabase.from('daily_scores').insert({ student_id: currentStudentId, date: targetDate, item_name: item, grade: nextGrade, score: GRADE_MAP[nextGrade] });
             updateCount++;
           }
         }
